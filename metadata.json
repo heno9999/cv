@@ -1,0 +1,7 @@
+{
+  "name": "Shahm CV Analyzer",
+  "description": "AI-powered tool for analyzing recruitment CVs, extracting key candidate data, and managing talent comparisons for Shahm Contracting.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
