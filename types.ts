@@ -6,7 +6,8 @@ export type CandidateStatus =
     | 'تمت المقابلة والتقييم' 
     | 'جاري المقابلة' 
     | 'مناسب'
-    | 'تم الرد (فحص أولي)';
+    | 'تم الرد (فحص أولي)'
+    | 'ملف جديد (بوابة التقديم)';
 
 export interface CandidateInfo {
     fullName: string;
@@ -89,14 +90,18 @@ export interface CandidateData {
         flags: string[];
     };
     rawText?: string;
+    cvUrl?: string;
+    source?: 'portal' | 'manual';
+    isAnalyzed?: boolean;
 }
 
 export enum AppView {
+    PUBLIC_PORTAL = 'PUBLIC_PORTAL',
+    PUBLIC_UPLOAD = 'PUBLIC_UPLOAD',
     LOGIN = 'LOGIN',
     HOME = 'HOME',
     DASHBOARD = 'DASHBOARD',
     UPLOAD = 'UPLOAD',
-    BULK_UPLOAD = 'BULK_UPLOAD',
     DETAILS = 'DETAILS',
     COMPARISON = 'COMPARISON',
     HIRE_FOR_ME = 'HIRE_FOR_ME',

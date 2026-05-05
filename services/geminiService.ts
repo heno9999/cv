@@ -1,5 +1,24 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
+
+
+async function callGeminiProxy(payload: any) {
+  const res = await fetch('/api/gemini', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Proxy error");
+  return data;
+}
+
+
+
+
+
+
+
 import { CandidateData, InterviewQuestions, NegotiationStrategy } from '../types';
 
 const fileToGenerativePart = async (file: File): Promise<{ inlineData: { data: string; mimeType: string } }> => {
@@ -59,27 +78,24 @@ const CV_ANALYSIS_SCHEMA = {
 };
 
 const SYSTEM_INSTRUCTION = `
-أنت خبير توظيف فني لشركة "شهم للمقاولات". مهمتك تحليل السير الذاتية بدقة عالية.
-يجب عليك الالتزام بالآتي:
+أنت خبير توظيف فني لشركة "شهم للمقاولات". مهمتك تحليل السير الذاتية بدقة عالية جداً.
+يجب عليك الالتزام بالقواعد الصارمة التالية لضمان جودة البيانات:
 1. تحديد ما إذا كان الملف سيرة ذاتية (CV/Resume) أم لا.
-2. إذا كان سيرة ذاتية، استخرج كافة البيانات المطلوبة في النموذج.
-3. يجب أن تكون كافة النصوص والبيانات المستخرجة باللغة العربية حصراً.
-4. التخصص (specialty) يجب أن يكون حصراً من: [مدني, معماري, كهرباء, ميكانيكا, زراعة, اداري, مراقب, مالية, تكنولوجيا المعلومات, رسام, موارد بشرية, سلسلة امداد].
-5. الجنسية (nationality) استخرجها باللغة العربية.
-6. خبرة المملكة (ksaExperience): استخرج عدد السنوات فقط كرقم. قاعدة هامة: إذا كانت الجنسية "سعودي"، افترض أن خبرة المملكة تساوي إجمالي سنوات الخبرة (experienceYears) ما لم يذكر بوضوح تام أنه عمل خارج المملكة. لغير السعوديين، احسب فقط سنوات العمل داخل السعودية.
-7. الاستقرار الوظيفي (jobStability): قيّمه بناءً على مدة البقاء في الشركات. ابدأ الإجابة بأحد التصنيفات [ممتاز, جيد, متوسط, ضعيف] ثم أتبعها بشرح موجز وجميل لسبب هذا التصنيف (مثال: "ممتاز: يُظهر استقراراً عالياً حيث عمل في شركتين فقط خلال 8 سنوات").
-8. استخرج رقم الجوال والبريد الإلكتروني بدقة شديدة للتحقق من التكرار لاحقاً.
+2. استخراج كافة البيانات باللغة العربية حصراً.
+3. التخصص (specialty): يجب أن يطابق تماماً القائمة المحددة في الـ Schema.
+4. الجنسية (nationality): يجب استخراجها دائماً بصيغة المذكر الموحدة (مثال: اكتب "مصري" حتى لو كانت السيرة لامرأة، "سعودي" بدلاً من "سعودية"، "أردني" بدلاً من "أردنية").
+5. الأسماء (fullName): نظف الاسم من أي ألقاب (مثل م/، مهندس، Mr.) واكتفِ بالاسم الثلاثي أو الرباعي كما هو.
+6. خبرة المملكة (ksaExperience): استخرج عدد السنوات فقط كرقم. قاعدة هامة: إذا كانت الجنسية "سعودي"، افترض أن خبرة المملكة تساوي إجمالي سنوات الخبرة ما لم يذكر بوضوح تام أنه عمل خارج المملكة.
+7. الاستقرار الوظيفي (jobStability): قيّمه بناءً على مدة البقاء في الشركات [ممتاز, جيد, متوسط, ضعيف] مع شرح موجز.
+8. بيانات التواصل: استخرج رقم الجوال والبريد الإلكتروني بدقة تقنية، وتأكد من كتابة البريد الإلكتروني بأحرف صغيرة (lowercase).
 `;
 
 export const analyzeCvPdf = async (file: File): Promise<any> => {
-  const apiKey = process.env.API_KEY;
-  if (!apiKey) throw new Error("API Key is missing");
-  const ai = new GoogleGenAI({ apiKey });
   const model = "gemini-3-flash-preview"; 
   const filePart = await fileToGenerativePart(file);
-  const response = await ai.models.generateContent({
+  const response = await callGeminiProxy({
     model: model,
-    contents: { parts: [filePart, { text: "حلل السيرة الذاتية المرفقة بدقة باللغة العربية واملأ كافة الحقول المطلوبة في الـ JSON Schema." }] },
+    contents: { parts: [filePart, { text: "حلل السيرة الذاتية المرفقة بدقة بالغة مع الالتزام بتوحيد صيغة الجنسية للمذكر." }] },
     config: { 
       systemInstruction: SYSTEM_INSTRUCTION, 
       responseMimeType: "application/json",
@@ -98,20 +114,20 @@ export const analyzeCvPdf = async (file: File): Promise<any> => {
 };
 
 export const rankCandidates = async (candidates: CandidateData[], query: string): Promise<string[]> => {
-  const apiKey = process.env.API_KEY;
-  if (!apiKey) throw new Error("API Key is missing");
-  const ai = new GoogleGenAI({ apiKey });
   const model = "gemini-3-flash-preview";
 
-  // Slim down data for token limits but keep essentials
-  const slimCandidates = candidates.map(c => ({
-    id: c.id,
-    name: c.info.fullName,
-    job: c.info.jobTitle,
-    skills: c.analysis.keySkills,
-    exp: c.info.experienceYears,
-    opinion: c.analysis.professionalOpinion
-  }));
+  const slimCandidates = candidates
+    .filter(c => c && c.info) 
+    .map(c => ({
+      id: c.id,
+      name: c.info?.fullName || 'غير معروف',
+      job: c.info?.jobTitle || 'غير محدد',
+      skills: c.analysis?.keySkills || [],
+      exp: c.info?.experienceYears || '0',
+      opinion: c.analysis?.professionalOpinion || ''
+    }));
+
+  if (slimCandidates.length === 0) return [];
 
   const prompt = `أنت محرك بحث ذكي لشركة شهم للمقاولات.
   الطلب: "${query}"
@@ -120,7 +136,7 @@ export const rankCandidates = async (candidates: CandidateData[], query: string)
   أرجع فقط JSON يحتوي على مصفوفة "bestCandidateIds".
   البيانات: ${JSON.stringify(slimCandidates)}`;
   
-  const response = await ai.models.generateContent({ 
+  const response = await callGeminiProxy({ 
     model, 
     contents: prompt, 
     config: { 
@@ -137,7 +153,7 @@ export const rankCandidates = async (candidates: CandidateData[], query: string)
   
   try {
     const result = JSON.parse(response.text || '{"bestCandidateIds":[]}');
-    return result.bestCandidateIds;
+    return result.bestCandidateIds || [];
   } catch (e) {
     console.error("Rank Parse Error", e);
     return [];
@@ -145,12 +161,9 @@ export const rankCandidates = async (candidates: CandidateData[], query: string)
 };
 
 export const generateInterviewQuestions = async (candidate: CandidateData): Promise<InterviewQuestions> => {
-  const apiKey = process.env.API_KEY;
-  if (!apiKey) throw new Error("API Key is missing");
-  const ai = new GoogleGenAI({ apiKey });
   const model = "gemini-3-flash-preview";
   const prompt = `توليد أسئلة مقابلة مخصصة لهذا المرشح باللغة العربية حصراً: ${JSON.stringify(candidate.info)}. ركز على نقاط القوة والضعف المذكورة في تحليله: ${JSON.stringify(candidate.analysis)}. يجب أن تكون الأسئلة احترافية وباللغة العربية الفصحى.`;
-  const response = await ai.models.generateContent({ 
+  const response = await callGeminiProxy({ 
     model, 
     contents: prompt, 
     config: { 
@@ -171,10 +184,7 @@ export const generateInterviewQuestions = async (candidate: CandidateData): Prom
 };
 
 export const analyzeTruthLens = async (candidate: CandidateData): Promise<{ score: number, report: string, flags: string[] }> => {
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) throw new Error("API Key is missing");
-    const ai = new GoogleGenAI({ apiKey });
-    const response = await ai.models.generateContent({
+    const response = await callGeminiProxy({
         model: "gemini-3-flash-preview",
         contents: `قم بالتدقيق الجنائي للسيرة الذاتية التالية بحثاً عن مبالغات أو تناقضات تاريخية. يجب أن يكون التقرير وجميع النتائج باللغة العربية حصراً وبصيغة مهنية: ${JSON.stringify(candidate)}`,
         config: { 
@@ -195,10 +205,7 @@ export const analyzeTruthLens = async (candidate: CandidateData): Promise<{ scor
 };
 
 export const analyzePsychometric = async (candidate: CandidateData): Promise<{ archetype: string, traits: string[], analysis: string }> => {
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) throw new Error("API Key is missing");
-    const ai = new GoogleGenAI({ apiKey });
-    const response = await ai.models.generateContent({
+    const response = await callGeminiProxy({
         model: "gemini-3-flash-preview",
         contents: `قم بتحليل النمط النفسي والقيادي باللغة العربية حصراً بناءً على المسيرة المهنية لهذا المرشح: ${JSON.stringify(candidate)}`,
         config: { 
@@ -218,10 +225,7 @@ export const analyzePsychometric = async (candidate: CandidateData): Promise<{ a
 };
 
 export const generateNegotiationStrategy = async (candidate: CandidateData): Promise<NegotiationStrategy> => {
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) throw new Error("API Key is missing");
-    const ai = new GoogleGenAI({ apiKey });
-    const response = await ai.models.generateContent({
+    const response = await callGeminiProxy({
         model: "gemini-3-flash-preview",
         contents: `توليد استراتيجية تفاوض مالية لمرشح في السوق السعودي باللغة العربية حصراً: ${JSON.stringify(candidate.info)}`,
         config: { 
@@ -250,10 +254,7 @@ export const generateNegotiationStrategy = async (candidate: CandidateData): Pro
 };
 
 export const generateManagerBrief = async (candidate: CandidateData): Promise<string> => {
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) throw new Error("API Key is missing");
-    const ai = new GoogleGenAI({ apiKey });
-    const response = await ai.models.generateContent({
+    const response = await callGeminiProxy({
         model: "gemini-3-flash-preview",
         contents: `اكتب ملخصاً تنفيذياً لمدير التوظيف حول هذا المرشح باللغة العربية حصراً، يبرز أهم النقاط في دقيقة واحدة: ${JSON.stringify(candidate)}`
     });
@@ -261,11 +262,8 @@ export const generateManagerBrief = async (candidate: CandidateData): Promise<st
 };
 
 export const generateSiteScenario = async (candidate: CandidateData, scenarioType: string): Promise<{ prediction: string, confidence: number, challengeQuestions: string[] }> => {
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) throw new Error("API Key is missing");
-    const ai = new GoogleGenAI({ apiKey });
     const prompt = `أنت خبير محاكاة ميدانية. بناءً على سيرة المرشح: ${JSON.stringify(candidate.info)}. قم بمحاكاة رد فعله في سيناريو: "${scenarioType}" في موقع إنشائي لشركة شهم. يجب أن يكون التوقع والأسئلة باللغة العربية حصراً.`;
-    const response = await ai.models.generateContent({
+    const response = await callGeminiProxy({
         model: "gemini-3-flash-preview",
         contents: prompt,
         config: { 
@@ -285,13 +283,10 @@ export const generateSiteScenario = async (candidate: CandidateData, scenarioTyp
 };
 
 export const analyzeProjectDNA = async (projectDesc: string, candidates: CandidateData[]): Promise<any[]> => {
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) throw new Error("API Key is missing");
-    const ai = new GoogleGenAI({ apiKey });
     const prompt = `أنت خبير تشكيل فرق هندسية لمشاريع المقاولات لشركة شهم للمقاولات. بناءً على وصف المشروع: "${projectDesc}". قم باختيار الفريق الأمثل من المرشحين باللغة العربية حصراً: ${JSON.stringify(candidates.map(c => ({ id: c.id, name: c.info.fullName, job: c.info.jobTitle })))}`;
     
-    const response = await ai.models.generateContent({
-        model: "gemini-3-pro-preview",
+    const response = await callGeminiProxy({
+        model: "gemini-3-flash-preview",
         contents: prompt,
         config: { 
           responseMimeType: "application/json",
@@ -320,28 +315,24 @@ export const analyzeProjectDNA = async (projectDesc: string, candidates: Candida
 };
 
 export const searchWebForCandidates = async (query: string): Promise<{ answer: string, sources: { title: string, uri: string }[] }> => {
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) throw new Error("API Key is missing");
-    const ai = new GoogleGenAI({ apiKey });
-    
-    const response = await ai.models.generateContent({
-      model: "gemini-3-pro-preview",
-      contents: `أنت "صائد كفاءات" (Headhunter) دقيق جداً لشركة شهم للمقاولات.
-      الهدف: العثور على **ملفات شخصية (Profiles)** لأشخاص حقيقيين في السعودية يطابقون **المسمى الوظيفي** المطلوب بدقة تامة.
-      الطلب: "${query}"
-      
-      قواعد البحث الصارمة (Strict Rules):
-      1. **التطابق الوظيفي الدقيق**: إذا بحث المستخدم عن "مشرف" (Supervisor)، يجب أن تكون النتائج لـ "مشرفين" فقط. **لا تحضر مهندسين (Engineers)** إذا كان الطلب مشرفاً، والعكس صحيح. الالتزام الحرفي بالمسمى الوظيفي مطلوب.
-      2. **الموقع**: داخل المملكة العربية السعودية حصراً.
-      3. **المصادر (X-Ray Search)**: ابحث فقط داخل روابط الملفات الشخصية:
-         - site:linkedin.com/in/
-         - site:bayt.com/ar/saudi-arabia/profile/
-      4. **الممنوعات**: تجاهل إعلانات الوظائف (Jobs)، صفحات الشركات، والمقالات العامة.
-      
-      استخدم Google Search للعثور على بروفايلات أشخاص (Candidates) وروابطهم المباشرة.
-      في الرد النصي: لخص باختصار النتائج وأكد على تطابق المسمى الوظيفي.`,
+    const response = await callGeminiProxy({
+      model: "gemini-3-flash-preview",
+      contents: `أنت خبير استقطاب (Headhunter) متقدم للبحث عن الكفاءات لحساب شركة شهم للمقاولات.
+الطلب من المستخدم: "${query}"
+
+يجب عليك إجراء بحث دقيق عبر محرك Google للعثور على أقوى المرشحين في السعودية الذين يتطابقون تماماً مع الطلب.
+للحصول على دقة عالية، الرجاء استخدام تقنيات X-Ray search (مثل إضافة site:linkedin.com/in/ أو site:bayt.com/ar/saudi-arabia/profile/ إلى كلمات البحث).
+
+تعليمات التعامل مع النتائج:
+1. استخلص فقط الأشخاص الحقيقيين (Profiles) وتجاهل إعلانات الوظائف (Jobs) وصفحات الشركات (Companies).
+2. يجب أن يحمل الشخص المسمى الوظيفي المطلوب والخبرات المطابقة، ويُفضل أن يكون داخل السعودية.
+3. التزم بالدقة المتناهية: لا تقم بتأليف أو اختراع أي أسماء أو معلومات، اعتمد حصراً وبشكل تام على النتائج التي حصلت عليها من بحث Google.
+4. قدم تقريراً احترافياً باللغة العربية يسرد أهم المرشحين المحتملين الذين تم العثور عليهم من نتائج البحث الحقيقية. اذكر اسم المرشح والوظيفة أو الشركة الحالية لمعرفة مطابقته.
+5. لا تقم بتضمين الروابط داخل النص أبداً (الروابط ستضاف تلقائياً في واجهة المستخدم من مصادرك).
+6. يجب أن يكون التقرير مباشراً، واضحاً، واحترافياً. وإذا لم تجد نتائج مطابقة بدقة، اعتذر ووضح ذلك.`,
       config: {
         tools: [{googleSearch: {}}],
+        temperature: 0.1,
       },
     });
 
@@ -349,11 +340,20 @@ export const searchWebForCandidates = async (query: string): Promise<{ answer: s
     const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
     if (chunks) {
         chunks.forEach((chunk: any) => {
-            if (chunk.web) {
-                sources.push({
-                    title: chunk.web.title || "ملف مرشح محتمل",
-                    uri: chunk.web.uri
-                });
+            if (chunk.web && chunk.web.uri) {
+                const uriValue = chunk.web.uri.toLowerCase();
+                // Filter out non-profile links
+                const isIrrelevant = uriValue.includes('/jobs/') || uriValue.includes('/job/') || uriValue.includes('/company/');
+                
+                if (!isIrrelevant) {
+                    // avoid duplicates
+                    if (!sources.find(s => s.uri === chunk.web.uri)) {
+                        sources.push({
+                            title: chunk.web.title || "ملف مرشح",
+                            uri: chunk.web.uri
+                        });
+                    }
+                }
             }
         });
     }

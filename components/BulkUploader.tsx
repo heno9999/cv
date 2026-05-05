@@ -3,6 +3,17 @@ import React, { useState, useRef } from 'react';
 import { UploadIcon, RefreshIcon, CheckCircleIcon, AlertIcon } from './Icons';
 import { analyzeCvPdf } from '../services/geminiService';
 import { CandidateData } from '../types';
+import { db, normalizePhone, normalizeNationality, normalizeName } from '../services/db';
+
+function generateId() {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
 
 interface FileProgress {
     file: File;
@@ -74,26 +85,38 @@ export const BulkUploader: React.FC<BulkUploaderProps> = ({ candidates, onSucces
                 } else {
                     // 2. Check Duplicates (Internal batch + Global DB)
                     const rEmail = result.info?.email?.toLowerCase()?.trim();
-                    const rPhone = result.info?.phone?.replace(/\s/g, '');
+                    const rPhoneFingerprint = normalizePhone(result.info?.phone || '');
+                    const rName = normalizeName(result.info?.fullName || '');
 
                     const isDuplicate = candidates.some(c => {
                         const cEmail = c.info?.email?.toLowerCase()?.trim();
-                        const cPhone = c.info?.phone?.replace(/\s/g, '');
-                        return (rEmail && cEmail && rEmail === cEmail) || (rPhone && cPhone && rPhone === cPhone);
+                        const cPhoneFingerprint = normalizePhone(c.info?.phone || '');
+                        const cName = normalizeName(c.info?.fullName || '');
+                        return (rEmail && cEmail && rEmail === cEmail) || (rPhoneFingerprint && cPhoneFingerprint && rPhoneFingerprint === cPhoneFingerprint) || (rName && cName && rName === cName);
                     }) || results.some(c => {
                         const cEmail = c.info?.email?.toLowerCase()?.trim();
-                        const cPhone = c.info?.phone?.replace(/\s/g, '');
-                        return (rEmail && cEmail && rEmail === cEmail) || (rPhone && cPhone && rPhone === cPhone);
+                        const cPhoneFingerprint = normalizePhone(c.info?.phone || '');
+                        const cName = normalizeName(c.info?.fullName || '');
+                        return (rEmail && cEmail && rEmail === cEmail) || (rPhoneFingerprint && cPhoneFingerprint && rPhoneFingerprint === cPhoneFingerprint) || (rName && cName && rName === cName);
                     });
 
                     if (isDuplicate) {
                         setFileQueue(prev => prev.map((p, i) => i === currentIndex ? { ...p, status: 'duplicate' } : p));
                     } else {
                         // 3. Valid Candidate
+                        let cvUrl: string | null = null;
+                        if (db.isCloudEnabled()) {
+                            const timestamp = new Date().getTime();
+                            const safeName = item.file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+                            const filename = `${timestamp}_${safeName}`;
+                            cvUrl = await db.uploadCvPdf(item.file, filename);
+                        }
+
                         const newCandidate: CandidateData = {
                             ...result,
-                            id: crypto.randomUUID(),
+                            id: generateId(),
                             fileName: item.file.name,
+                            cvUrl: cvUrl || undefined,
                             uploadDate: new Date().toLocaleDateString('ar-EG'),
                             status: 'Under Review'
                         } as CandidateData;

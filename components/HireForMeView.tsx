@@ -13,7 +13,8 @@ import {
     RefreshIcon, 
     FileTextIcon, 
     CalendarIcon,
-    PrinterIcon
+    PrinterIcon,
+    TagIcon
 } from './Icons';
 import { generateInterviewQuestions } from '../services/geminiService';
 
@@ -26,17 +27,19 @@ interface HireForMeViewProps {
 
 const KPICard = ({ label, value, subtitle, icon, isPrint = false }: { label: string, value: string | number, subtitle: string, icon: React.ReactNode, isPrint?: boolean }) => {
     return (
-        <div className={`bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col gap-1 ${isPrint ? 'p-2 border-slate-200 shadow-none' : 'p-6'}`}>
-            <div className="flex items-center justify-between mb-0.5">
-                <span className={`${isPrint ? 'text-[7.5px]' : 'text-[9px]'} font-black text-slate-400 uppercase tracking-widest`}>{label}</span>
-                <div className={`rounded-lg bg-slate-50 text-slate-600 flex items-center justify-center ${isPrint ? 'w-5 h-5 print-icon-wrapper' : 'p-1 scale-75'}`}>
-                    <div className={isPrint ? 'print-icon' : ''}>
+        <div className={`bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between ${isPrint ? 'p-4 border-slate-300 shadow-none' : 'p-6 h-32'}`}>
+            <div className="flex items-center justify-between mb-2">
+                <span className={`${isPrint ? 'text-[9px]' : 'text-[10px]'} font-black text-slate-500 uppercase tracking-widest`}>{label}</span>
+                <div className={`rounded-lg bg-slate-50 text-slate-600 flex items-center justify-center ${isPrint ? 'w-6 h-6 p-1 bg-slate-100' : 'p-2'}`}>
+                    <div className={isPrint ? 'text-slate-800' : ''}>
                         {icon}
                     </div>
                 </div>
             </div>
-            <div className={`${isPrint ? 'text-lg' : 'text-3xl'} font-black text-slate-900 tracking-tighter`}>{value}</div>
-            <div className={`font-bold text-slate-400 leading-tight ${isPrint ? 'text-[7px]' : 'text-[9px]'}`}>{subtitle}</div>
+            <div>
+                <div className={`${isPrint ? 'text-2xl' : 'text-3xl'} font-black text-slate-900 tracking-tighter mb-1`}>{value}</div>
+                <div className={`font-bold text-slate-400 leading-tight ${isPrint ? 'text-[8px]' : 'text-[9px]'}`}>{subtitle}</div>
+            </div>
         </div>
     );
 };
@@ -50,37 +53,41 @@ const DonutChart = ({ data, title, isPrint = false }: { data: { label: string, v
     return [x, y];
   };
   return (
-    <div className={`bg-white rounded-[1.5rem] border border-slate-100 shadow-sm flex flex-col items-center ${isPrint ? 'p-3 border-slate-200 shadow-none' : 'p-6'}`}>
-      <h3 className={`font-black text-slate-900 self-start uppercase tracking-widest border-r-4 border-blue-600 pr-2 ${isPrint ? 'text-[8.5px] mb-2' : 'text-[10px] mb-4'}`}>{title}</h3>
-      <div className={`relative ${isPrint ? 'w-24 h-24' : 'w-40 h-40'}`}>
-        <svg viewBox="-1 -1 2 2" className={`w-full h-full -rotate-90 ${isPrint ? 'chart-svg' : ''}`}>
-          {total === 0 ? (
-            <circle cx="0" cy="0" r="1" fill="#f1f5f9" />
-          ) : (
-            data.map((slice, i) => {
-              const startPercent = cumulativePercent;
-              const slicePercent = slice.value / total;
-              cumulativePercent += slicePercent;
-              const [startX, startY] = getCoordinatesForPercent(startPercent);
-              const [endX, endY] = getCoordinatesForPercent(cumulativePercent);
-              const largeArcFlag = slicePercent > 0.5 ? 1 : 0;
-              const pathData = [`M ${startX} ${startY}`, `A 1 1 0 ${largeArcFlag} 1 ${endX} ${endY}`, `L 0 0`].join(' ');
-              return <path key={i} d={pathData} fill={slice.color} />;
-            })
-          )}
-          <circle cx="0" cy="0" r="0.65" fill="white" />
-        </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <span className={`${isPrint ? 'text-[11px]' : 'text-lg'} font-black text-slate-900`}>{total}</span>
-          <span className={`${isPrint ? 'text-[5px]' : 'text-[7px]'} font-bold text-slate-400 uppercase`}>مرشح</span>
-        </div>
+    <div className={`bg-white rounded-[1.5rem] border border-slate-100 shadow-sm flex flex-col ${isPrint ? 'p-4 border-slate-300 shadow-none' : 'p-6 h-[340px]'}`}>
+      <h3 className={`font-black text-slate-900 uppercase tracking-widest border-r-4 border-blue-600 pr-3 ${isPrint ? 'text-[9px] mb-3' : 'text-xs mb-6'}`}>{title}</h3>
+      
+      <div className="flex-1 flex flex-col items-center justify-center relative">
+          <div className={`relative ${isPrint ? 'w-24 h-24' : 'w-40 h-40'} shrink-0`}>
+            <svg viewBox="-1 -1 2 2" className={`w-full h-full -rotate-90 ${isPrint ? 'print-chart' : ''}`}>
+              {total === 0 ? (
+                <circle cx="0" cy="0" r="1" fill="#f1f5f9" />
+              ) : (
+                data.map((slice, i) => {
+                  const startPercent = cumulativePercent;
+                  const slicePercent = slice.value / total;
+                  cumulativePercent += slicePercent;
+                  const [startX, startY] = getCoordinatesForPercent(startPercent);
+                  const [endX, endY] = getCoordinatesForPercent(cumulativePercent);
+                  const largeArcFlag = slicePercent > 0.5 ? 1 : 0;
+                  const pathData = [`M ${startX} ${startY}`, `A 1 1 0 ${largeArcFlag} 1 ${endX} ${endY}`, `L 0 0`].join(' ');
+                  return <path key={i} d={pathData} fill={slice.color} stroke="white" strokeWidth="0.02" />;
+                })
+              )}
+              <circle cx="0" cy="0" r="0.65" fill="white" />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <span className={`${isPrint ? 'text-[12px]' : 'text-2xl'} font-black text-slate-900`}>{total}</span>
+              <span className={`${isPrint ? 'text-[6px]' : 'text-[9px]'} font-bold text-slate-400 uppercase`}>مرشح</span>
+            </div>
+          </div>
       </div>
-      <div className={`w-full space-y-0.5 ${isPrint ? 'mt-2 px-1' : 'mt-4'}`}>
+
+      <div className={`w-full space-y-2 mt-6 overflow-y-auto custom-scrollbar max-h-[100px] px-1`}>
         {data.map((item, i) => (
-          <div key={i} className={`flex items-center justify-between font-bold ${isPrint ? 'text-[7.5px]' : 'text-[9px]'}`}>
+          <div key={i} className={`flex items-center justify-between font-bold ${isPrint ? 'text-[8px]' : 'text-[10px]'}`}>
             <div className="flex items-center gap-2">
-              <div className="w-1 h-1 rounded-full" style={{ backgroundColor: item.color }}></div>
-              <span className="text-slate-600 truncate max-w-[80px]">{item.label}</span>
+              <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: item.color, printColorAdjust: 'exact' }}></div>
+              <span className="text-slate-600 truncate">{item.label}</span>
             </div>
             <span className="text-slate-900 font-black">{total > 0 ? Math.round((item.value / total) * 100) : 0}%</span>
           </div>
@@ -93,34 +100,35 @@ const DonutChart = ({ data, title, isPrint = false }: { data: { label: string, v
 const BarChart = ({ data, title, horizontal = false, isPrint = false }: { data: { label: string, value: number, color: string }[], title: string, horizontal?: boolean, isPrint?: boolean }) => {
   const max = Math.max(...data.map(d => d.value), 1);
   return (
-    <div className={`bg-white rounded-[1.5rem] border border-slate-100 shadow-sm flex flex-col h-full ${isPrint ? 'p-3 border-slate-200 shadow-none' : 'p-6'}`}>
-      <h3 className={`font-black text-slate-900 uppercase tracking-widest border-r-4 border-emerald-500 pr-2 ${isPrint ? 'text-[8.5px] mb-2' : 'text-[10px] mb-4'}`}>{title}</h3>
-      <div className={`flex-1 flex ${horizontal ? 'flex-col gap-1.5 justify-center' : 'items-end justify-around gap-2'}`}>
+    <div className={`bg-white rounded-[1.5rem] border border-slate-100 shadow-sm flex flex-col ${isPrint ? 'p-4 border-slate-300 shadow-none' : 'p-6 h-[340px]'}`}>
+      <h3 className={`font-black text-slate-900 uppercase tracking-widest border-r-4 border-emerald-500 pr-3 ${isPrint ? 'text-[9px] mb-3' : 'text-xs mb-6'}`}>{title}</h3>
+      
+      <div className={`flex-1 flex ${horizontal ? 'flex-col justify-center gap-3' : 'items-end justify-around gap-2'}`}>
         {data.map((item, i) => {
           const size = (item.value / max) * 100;
           if (horizontal) {
             return (
-              <div key={i} className="space-y-0.5">
-                <div className={`flex justify-between items-center font-black text-slate-500 ${isPrint ? 'text-[7.5px]' : 'text-[8px]'} mb-0.5`}>
-                  <span className="truncate max-w-[150px]">{item.label}</span>
-                  <span className="text-slate-900">{item.value}</span>
+              <div key={i} className="space-y-1 w-full">
+                <div className={`flex justify-between items-center font-black text-slate-500 ${isPrint ? 'text-[8px]' : 'text-[10px]'}`}>
+                  <span className="truncate max-w-[180px]">{item.label}</span>
+                  <span className="text-slate-900 bg-slate-100 px-1.5 rounded text-[9px]">{item.value}</span>
                 </div>
-                <div className={`${isPrint ? 'h-1' : 'h-1.5'} bg-slate-50 rounded-full overflow-hidden border border-slate-100`}>
-                  <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${size}%`, backgroundColor: item.color }}></div>
+                <div className={`${isPrint ? 'h-2' : 'h-2.5'} bg-slate-50 rounded-full overflow-hidden border border-slate-100`}>
+                  <div className="h-full rounded-full transition-all duration-500" style={{ width: `${size}%`, backgroundColor: item.color, printColorAdjust: 'exact' }}></div>
                 </div>
               </div>
             );
           }
           return (
-            <div key={i} className="flex flex-col items-center gap-1 flex-1">
-              <div className={`w-full bg-slate-50 rounded-t-lg overflow-hidden relative border-x border-t border-slate-100 flex items-end ${isPrint ? 'h-16' : 'h-32'}`}>
+            <div key={i} className="flex flex-col items-center gap-2 flex-1 h-full justify-end group">
+              <div className={`w-full bg-slate-50 rounded-t-lg overflow-hidden relative border-x border-t border-slate-100 flex items-end transition-all duration-300 group-hover:bg-slate-100 ${isPrint ? 'h-full' : 'h-full'}`}>
                 <div 
-                  className="w-full transition-all duration-1000 ease-out" 
-                  style={{ height: `${size}%`, backgroundColor: item.color }}
+                  className="w-full transition-all duration-700 ease-out" 
+                  style={{ height: `${size}%`, backgroundColor: item.color, printColorAdjust: 'exact' }}
                 ></div>
-                <span className={`absolute top-0.5 left-1/2 -translate-x-1/2 font-black text-slate-900 ${isPrint ? 'text-[6.5px]' : 'text-[8px]'}`}>{item.value}</span>
+                <span className={`absolute top-1 left-1/2 -translate-x-1/2 font-black text-slate-900 ${isPrint ? 'text-[7px]' : 'text-[10px]'}`}>{item.value}</span>
               </div>
-              <span className={`font-black text-slate-400 text-center leading-tight uppercase tracking-tighter h-2.5 flex items-center ${isPrint ? 'text-[6.5px]' : 'text-[7px]'}`}>{item.label}</span>
+              <span className={`font-black text-slate-400 text-center leading-tight uppercase tracking-tighter h-8 flex items-center justify-center w-full ${isPrint ? 'text-[7px]' : 'text-[9px]'}`}>{item.label}</span>
             </div>
           );
         })}
@@ -151,13 +159,19 @@ export const HireForMeView: React.FC<HireForMeViewProps> = ({ candidates, onSave
   const [sortOrder, setSortOrder] = useState<'default' | 'highestScore'>('default');
   const [filterName, setFilterName] = useState<string>('');
   const [filterSpecialty, setFilterSpecialty] = useState<string>('');
+  const [filterNationality, setFilterNationality] = useState<string>('');
   const [filterKsaExp, setFilterKsaExp] = useState<'all' | 'under2' | '2-5' | 'above5'>('all');
   const [filterShortlist, setFilterShortlist] = useState<'all' | 'qualified' | 'notQualified'>('all');
   const [filterEvalStatus, setFilterEvalStatus] = useState<'all' | 'evaluated' | 'notEvaluated'>('all');
   const [filterStability, setFilterStability] = useState<'all' | 'high' | 'medium' | 'low'>('all');
 
   const specialties = useMemo(() => {
-    const unique = new Set(candidates.map(c => c.info.specialty).filter(Boolean));
+    const unique = new Set(candidates.map(c => c?.info?.specialty).filter(Boolean));
+    return Array.from(unique).sort();
+  }, [candidates]);
+
+  const nationalities = useMemo(() => {
+    const unique = new Set(candidates.map(c => c?.info?.nationality).filter(Boolean));
     return Array.from(unique).sort();
   }, [candidates]);
 
@@ -168,7 +182,7 @@ export const HireForMeView: React.FC<HireForMeViewProps> = ({ candidates, onSave
     return match ? parseFloat(match[1]) : -1;
   };
 
-  const getStabilityLevel = (text: string) => {
+  const getStabilityLevel = (text?: string) => {
     if (!text) return 'unknown';
     if (text.includes('ممتاز') || text.includes('ممتازة')) return 'high';
     if (text.includes('جيد') || text.includes('جيدة')) return 'medium';
@@ -176,15 +190,29 @@ export const HireForMeView: React.FC<HireForMeViewProps> = ({ candidates, onSave
     return 'unknown';
   };
 
+  const isSearchActive = !!(filterName.trim().length >= 3 || filterSpecialty || filterNationality || filterKsaExp !== 'all' || filterShortlist !== 'all' || filterEvalStatus !== 'all' || filterStability !== 'all');
+
   const filteredAndSortedCandidates = useMemo(() => {
     let result = [...candidates];
-    if (filterName) {
-      result = result.filter(c => c.info.fullName.toLowerCase().includes(filterName.toLowerCase()));
+    
+    if (filterName.trim()) {
+      const q = filterName.toLowerCase().trim();
+      result = result.filter(c => c?.info?.fullName?.toLowerCase().includes(q));
+      
+      result.sort((a, b) => {
+        const aStarts = a?.info?.fullName?.toLowerCase().startsWith(q);
+        const bStarts = b?.info?.fullName?.toLowerCase().startsWith(q);
+        if (aStarts && !bStarts) return -1;
+        if (!aStarts && bStarts) return 1;
+        return (a?.info?.fullName || '').localeCompare(b?.info?.fullName || '');
+      });
     }
-    if (filterSpecialty) result = result.filter(c => c.info.specialty === filterSpecialty);
+
+    if (filterSpecialty) result = result.filter(c => c?.info?.specialty === filterSpecialty);
+    if (filterNationality) result = result.filter(c => c?.info?.nationality === filterNationality);
     if (filterKsaExp !== 'all') {
       result = result.filter(c => {
-        const num = getNumFromStr(c.info.ksaExperience);
+        const num = getNumFromStr(c?.info?.ksaExperience);
         if (num === -1) return false;
         if (filterKsaExp === 'under2') return num < 2;
         if (filterKsaExp === '2-5') return num >= 2 && num <= 5;
@@ -195,29 +223,33 @@ export const HireForMeView: React.FC<HireForMeViewProps> = ({ candidates, onSave
     if (filterShortlist !== 'all') {
       const qualifiedStatuses = ['جاري المقابلة', 'تمت المقابلة والتقييم', 'مناسب'];
       result = result.filter(c => {
-        const isQualified = qualifiedStatuses.includes(c.status);
+        const isQualified = qualifiedStatuses.includes(c?.status || '');
         return filterShortlist === 'qualified' ? isQualified : !isQualified;
       });
     }
     if (filterEvalStatus !== 'all') {
       result = result.filter(c => {
-        const hasEval = !!c.evaluation && (c.evaluation.score > 0 || !!c.evaluation.finalEvaluation);
+        const hasEval = !!c?.evaluation && ((c.evaluation.score || 0) > 0 || !!c.evaluation.finalEvaluation);
         return filterEvalStatus === 'evaluated' ? hasEval : !hasEval;
       });
     }
     if (filterStability !== 'all') {
-      result = result.filter(c => getStabilityLevel(c.info.jobStability) === filterStability);
+      result = result.filter(c => getStabilityLevel(c?.info?.jobStability) === filterStability);
     }
-    if (sortOrder === 'highestScore') {
+    
+    if (!filterName.trim() && sortOrder === 'highestScore') {
       result.sort((a, b) => (b.evaluation?.score || 0) - (a.evaluation?.score || 0));
     }
+    
     return result;
-  }, [candidates, sortOrder, filterName, filterSpecialty, filterKsaExp, filterShortlist, filterEvalStatus, filterStability]);
+  }, [candidates, sortOrder, filterName, filterSpecialty, filterNationality, filterKsaExp, filterShortlist, filterEvalStatus, filterStability]);
 
   const analytics = useMemo(() => {
+    const targetData = isSearchActive ? filteredAndSortedCandidates : candidates;
+    
     const natCounts: Record<string, number> = {};
-    filteredAndSortedCandidates.forEach(c => {
-      const n = c.info.nationality || 'غير محدد';
+    targetData.forEach(c => {
+      const n = c?.info?.nationality || 'غير محدد';
       natCounts[n] = (natCounts[n] || 0) + 1;
     });
     const sortedNats = Object.entries(natCounts).sort((a, b) => b[1] - a[1]);
@@ -227,31 +259,43 @@ export const HireForMeView: React.FC<HireForMeViewProps> = ({ candidates, onSave
       label, value, color: ['#4285F4', '#9B72CB', '#D96570', '#F4AF40'][i]
     }));
     if (otherCount > 0) nationalityData.push({ label: 'أخرى', value: otherCount, color: '#94a3b8' });
+
     const expBands = { '0-2': 0, '2-5': 0, '5-10': 0, '10+': 0 };
-    filteredAndSortedCandidates.forEach(c => {
-      const num = getNumFromStr(c.info.experienceYears);
+    targetData.forEach(c => {
+      const num = getNumFromStr(c?.info?.experienceYears);
       if (num < 2) expBands['0-2']++;
       else if (num <= 5) expBands['2-5']++;
       else if (num <= 10) expBands['5-10']++;
       else expBands['10+']++;
     });
-    const experienceData = [{ label: '0-2 سنوات', value: expBands['0-2'], color: '#3b82f6' }, { label: '2-5 سنوات', value: expBands['2-5'], color: '#6366f1' }, { label: '5-10 سنوات', value: expBands['5-10'], color: '#8b5cf6' }, { label: 'أكثر من 10 سنوات', value: expBands['10+'], color: '#10b981' }];
+    const experienceData = [
+      { label: '0-2 سنوات', value: expBands['0-2'], color: '#3b82f6' },
+      { label: '2-5 سنوات', value: expBands['2-5'], color: '#6366f1' },
+      { label: '5-10 سنوات', value: expBands['5-10'], color: '#8b5cf6' },
+      { label: 'أكثر من 10 سنوات', value: expBands['10+'], color: '#10b981' }
+    ];
+
     const specCounts: Record<string, number> = {};
-    filteredAndSortedCandidates.forEach(c => {
-      const s = c.info.specialty || 'غير محدد';
+    targetData.forEach(c => {
+      const s = c?.info?.specialty || 'غير محدد';
       specCounts[s] = (specCounts[s] || 0) + 1;
     });
-    const topSpecialties = Object.entries(specCounts).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([label, value]) => ({ label, value, color: '#4f46e5' }));
+    const topSpecialties = Object.entries(specCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([label, value]) => ({ label, value, color: '#4f46e5' }));
+
     return { nationalityData, experienceData, topSpecialties };
-  }, [filteredAndSortedCandidates]);
+  }, [filteredAndSortedCandidates, candidates, isSearchActive]);
 
   const stats = useMemo(() => {
-    const total = candidates.length;
+    const targetData = isSearchActive ? filteredAndSortedCandidates : candidates;
+    const total = targetData.length;
     const qualifiedStatuses = ['جاري المقابلة', 'تمت المقابلة والتقييم', 'مناسب'];
-    const shortlistedCount = candidates.filter(c => qualifiedStatuses.includes(c.status)).length;
-    const evaluationsWithScore = candidates.filter(c => c.evaluation?.score !== undefined);
+    const shortlistedCount = targetData.filter(c => qualifiedStatuses.includes(c?.status || '')).length;
+    const evaluationsWithScore = targetData.filter(c => c?.evaluation?.score !== undefined);
     const avgScoreNum = evaluationsWithScore.length ? Math.round(evaluationsWithScore.reduce((sum, c) => sum + (c.evaluation?.score || 0), 0) / evaluationsWithScore.length) : 0;
-    const suitableCount = candidates.filter(c => c.status === 'مناسب' || c.analysis.fitnessForShahm.includes("مناسب جدًا")).length;
+    const suitableCount = targetData.filter(c => (c?.status === 'مناسب') || (c?.analysis?.fitnessForShahm?.includes("مناسب جدًا"))).length;
     const suitabilityPctNum = total > 0 ? Math.round((suitableCount / total) * 100) : 0;
     return { 
       total, 
@@ -261,12 +305,13 @@ export const HireForMeView: React.FC<HireForMeViewProps> = ({ candidates, onSave
       suitabilityPctNum,
       suitabilityPct: `${suitabilityPctNum}%` 
     };
-  }, [candidates]);
+  }, [filteredAndSortedCandidates, candidates, isSearchActive]);
 
   const resetFilters = () => {
     setSortOrder('default');
     setFilterName('');
     setFilterSpecialty('');
+    setFilterNationality('');
     setFilterKsaExp('all');
     setFilterShortlist('all');
     setFilterEvalStatus('all');
@@ -279,13 +324,12 @@ export const HireForMeView: React.FC<HireForMeViewProps> = ({ candidates, onSave
   const printReportCandidate = candidates.find(c => c.id === printReportCandidateId);
 
   return (
-    <div className="space-y-8 animate-fade-in max-w-6xl mx-auto pb-20">
+    <div className="space-y-8 animate-fade-in max-w-7xl mx-auto pb-20">
       <div className="text-center py-6 no-print">
         <h1 className="text-4xl font-black tracking-tighter relative inline-block">
           <span className="ai-text-shimmer neon-glow">شهماوي وظِّف لي</span>
           <div className="absolute -inset-1 blur-lg opacity-20 bg-blue-500 rounded-full animate-pulse"></div>
         </h1>
-        <style>{`.neon-glow { filter: drop-shadow(0 0 5px rgba(66, 133, 244, 0.5)); }`}</style>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 no-print">
@@ -309,10 +353,11 @@ export const HireForMeView: React.FC<HireForMeViewProps> = ({ candidates, onSave
                 <span>تصدير لوحة التحكم</span>
             </button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-          <div className="md:col-span-4 h-full"><DonutChart title="توزيع الجنسيات" data={analytics.nationalityData} /></div>
-          <div className="md:col-span-4 h-full"><BarChart title="توزيع سنوات الخبرة" data={analytics.experienceData} /></div>
-          <div className="md:col-span-4 h-full"><BarChart title="أكثر التخصصات تكرارًا" data={analytics.topSpecialties} horizontal={true} /></div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="h-full"><DonutChart title="توزيع الجنسيات" data={analytics.nationalityData} /></div>
+          <div className="h-full"><BarChart title="توزيع سنوات الخبرة" data={analytics.experienceData} /></div>
+          <div className="h-full"><BarChart title="أكثر التخصصات تكرارًا" data={analytics.topSpecialties} horizontal={true} /></div>
         </div>
       </div>
 
@@ -323,12 +368,12 @@ export const HireForMeView: React.FC<HireForMeViewProps> = ({ candidates, onSave
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex flex-col gap-1.5 flex-1 min-w-[200px]">
-            <label className="text-[10px] font-black text-slate-400 mr-1 uppercase">بحث بالاسم</label>
+            <label className="text-[10px] font-black text-slate-400 mr-1 uppercase">البحث بالاسم (حرفي)</label>
             <input 
               type="text" 
               value={filterName} 
               onChange={(e) => setFilterName(e.target.value)} 
-              placeholder="ابحث عن مرشح..." 
+              placeholder="اكتب الاسم بدقة..." 
               className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
@@ -344,6 +389,13 @@ export const HireForMeView: React.FC<HireForMeViewProps> = ({ candidates, onSave
             <select value={filterSpecialty} onChange={(e) => setFilterSpecialty(e.target.value)} className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20 min-w-[140px]">
               <option value="">كل التخصصات</option>
               {specialties.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[10px] font-black text-slate-400 mr-1 uppercase">الجنسية</label>
+            <select value={filterNationality} onChange={(e) => setFilterNationality(e.target.value)} className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20 min-w-[140px]">
+              <option value="">كل الجنسيات</option>
+              {nationalities.map(n => <option key={n} value={n}>{n}</option>)}
             </select>
           </div>
           <div className="flex flex-col gap-1.5">
@@ -395,7 +447,7 @@ export const HireForMeView: React.FC<HireForMeViewProps> = ({ candidates, onSave
 
       <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden min-h-[400px] no-print">
         <div className="p-8 border-b border-slate-100 flex justify-between items-center">
-            <h2 className="text-xl font-black text-slate-900">تقييم المرشحين ({filteredAndSortedCandidates.length})</h2>
+            <h2 className="text-xl font-black text-slate-900">تقييم المرشحين ({isSearchActive ? filteredAndSortedCandidates.length : 0})</h2>
         </div>
         <div className="overflow-x-auto">
             <table className="w-full text-right ltr">
@@ -410,60 +462,73 @@ export const HireForMeView: React.FC<HireForMeViewProps> = ({ candidates, onSave
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                    {filteredAndSortedCandidates.map(c => {
-                        const hasInterviewed = c.evaluation && (c.evaluation.score > 0 || !!c.evaluation.finalEvaluation);
-                        return (
-                            <tr key={c.id} className="hover:bg-slate-50 transition-colors">
-                                <td className="p-6">
-                                    <div className="flex flex-col">
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-bold text-slate-900 text-sm">{c.info.fullName}</span>
-                                            {hasInterviewed && (
-                                                <span className="bg-emerald-100 text-emerald-700 text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter">تمت المقابلة</span>
-                                            )}
-                                        </div>
-                                        <div className="text-[10px] text-slate-400 mt-1 font-mono">#{c.id.split('-')[0]}</div>
+                    {!isSearchActive ? (
+                        <tr>
+                            <td colSpan={6} className="p-24 text-center">
+                                <div className="flex flex-col items-center gap-6 opacity-40">
+                                    <RobotIcon className="w-16 h-16 text-slate-300" />
+                                    <div className="space-y-2">
+                                        <p className="text-slate-400 font-black text-lg">بانتظار تعليماتك يا بشمهندس...</p>
+                                        <p className="text-slate-400 font-bold text-sm">يرجى استخدام محرك الفلترة الذكي أو البحث بالاسم لعرض أسماء المرشحين.</p>
                                     </div>
-                                </td>
-                                <td className="p-6">
-                                    <div className="text-xs font-bold text-slate-600">{c.info.jobTitle}</div>
-                                    <div className="text-[9px] text-slate-400 font-black mt-1 uppercase tracking-widest">{c.info.specialty}</div>
-                                </td>
-                                <td className="p-6"><div className="text-xs font-black text-slate-700">{c.info.ksaExperience || 'غير متوفر'}</div></td>
-                                <td className="p-6">
-                                    {c.evaluation?.score !== undefined && c.evaluation.score > 0 ? (
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-12 h-1.5 bg-slate-100 rounded-full overflow-hidden"><div className="h-full bg-blue-600" style={{ width: `${c.evaluation.score}%` }}></div></div>
-                                            <span className="text-xs font-black text-slate-900">{c.evaluation.score}%</span>
-                                        </div>
-                                    ) : <span className="text-[10px] text-slate-300 italic">بدون تقييم</span>}
-                                </td>
-                                <td className="p-6">
-                                    <span className={`text-[10px] font-black px-2 py-1 rounded-lg border ${['جاري المقابلة', 'تمت المقابلة والتقييم', 'مناسب'].includes(c.status) ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-50 text-slate-500 border-slate-100'}`}>
-                                        {c.status === 'Under Review' ? 'قيد المراجعة' : c.status}
-                                    </span>
-                                </td>
-                                <td className="p-6 text-center">
-                                    <div className="flex justify-center gap-2">
-                                        <button onClick={() => handleOpenInterviewSession(c.id)} className="bg-emerald-600 text-white px-4 py-2 rounded-xl text-[10px] font-black hover:bg-emerald-700 transition-all flex items-center gap-1.5 shadow-sm">
-                                            <CalendarIcon className="w-3.5 h-3.5" />
-                                            <span>بدء جلسة المقابلة</span>
-                                        </button>
-                                        <button onClick={() => handleOpenEvaluation(c.id)} className="bg-slate-50 text-slate-600 border border-slate-200 px-4 py-2 rounded-xl text-[10px] font-black hover:bg-white hover:border-blue-500 hover:text-blue-600 transition-all flex items-center gap-1.5">
-                                            <ShieldIcon className="w-3.5 h-3.5" />
-                                            <span>تقييم سريع</span>
-                                        </button>
-                                        <button onClick={() => handleOpenInterviewQuestions(c.id)} className="bg-indigo-50 text-indigo-600 border border-indigo-100 px-4 py-2 rounded-xl text-[10px] font-black hover:bg-indigo-600 hover:text-white transition-all flex items-center gap-1.5">
-                                            <RobotIcon className="w-3.5 h-3.5" />
-                                            <span>تجهيز أسئلة</span>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        );
-                    })}
-                    {filteredAndSortedCandidates.length === 0 && (
+                                </div>
+                            </td>
+                        </tr>
+                    ) : filteredAndSortedCandidates.length === 0 ? (
                         <tr><td colSpan={6} className="p-20 text-center text-slate-400 font-bold italic"><div className="flex flex-col items-center gap-4 opacity-40"><AlertIcon className="w-12 h-12" /><span>لا توجد سير ذاتية مطابقة لمعايير البحث الحالية.</span></div></td></tr>
+                    ) : (
+                        filteredAndSortedCandidates.map(c => {
+                            const hasInterviewed = c?.evaluation && ((c.evaluation.score || 0) > 0 || !!c.evaluation.finalEvaluation);
+                            return (
+                                <tr key={c.id} className="hover:bg-slate-50 transition-colors">
+                                    <td className="p-6">
+                                        <div className="flex flex-col">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-bold text-slate-900 text-sm">{c?.info?.fullName || 'غير معروف'}</span>
+                                                {hasInterviewed && (
+                                                    <span className="bg-emerald-100 text-emerald-700 text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter">تمت المقابلة</span>
+                                                )}
+                                            </div>
+                                            <div className="text-[10px] text-slate-400 mt-1 font-mono">#{c.id.split('-')[0]}</div>
+                                        </div>
+                                    </td>
+                                    <td className="p-6">
+                                        <div className="text-xs font-bold text-slate-600">{c?.info?.jobTitle || 'غير محدد'}</div>
+                                        <div className="text-[9px] text-slate-400 font-black mt-1 uppercase tracking-widest">{c?.info?.specialty || 'غير محدد'}</div>
+                                    </td>
+                                    <td className="p-6"><div className="text-xs font-black text-slate-700">{c?.info?.ksaExperience || 'غير متوفر'}</div></td>
+                                    <td className="p-6">
+                                        {c?.evaluation?.score !== undefined && c.evaluation.score > 0 ? (
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-12 h-1.5 bg-slate-100 rounded-full overflow-hidden"><div className="h-full bg-blue-600" style={{ width: `${c.evaluation.score}%` }}></div></div>
+                                                <span className="text-xs font-black text-slate-900">{c.evaluation.score}%</span>
+                                            </div>
+                                        ) : <span className="text-[10px] text-slate-300 italic">بدون تقييم</span>}
+                                    </td>
+                                    <td className="p-6">
+                                        <span className={`text-[10px] font-black px-2 py-1 rounded-lg border ${['جاري المقابلة', 'تمت المقابلة والتقييم', 'مناسب'].includes(c?.status || '') ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-50 text-slate-500 border-slate-100'}`}>
+                                            {c?.status === 'Under Review' ? 'قيد المراجعة' : (c?.status || 'مراجعة')}
+                                        </span>
+                                    </td>
+                                    <td className="p-6 text-center">
+                                        <div className="flex justify-center gap-2">
+                                            <button onClick={() => handleOpenInterviewSession(c.id)} className="bg-emerald-600 text-white px-4 py-2 rounded-xl text-[10px] font-black hover:bg-emerald-700 transition-all flex items-center gap-1.5 shadow-sm">
+                                                <CalendarIcon className="w-3.5 h-3.5" />
+                                                <span>بدء جلسة المقابلة</span>
+                                            </button>
+                                            <button onClick={() => handleOpenEvaluation(c.id)} className="bg-slate-50 text-slate-600 border border-slate-200 px-4 py-2 rounded-xl text-[10px] font-black hover:bg-white hover:border-blue-500 hover:text-blue-600 transition-all flex items-center gap-1.5">
+                                                <ShieldIcon className="w-3.5 h-3.5" />
+                                                <span>تقييم سريع</span>
+                                            </button>
+                                            <button onClick={() => handleOpenInterviewQuestions(c.id)} className="bg-indigo-50 text-indigo-600 border border-indigo-100 px-4 py-2 rounded-xl text-[10px] font-black hover:bg-indigo-600 hover:text-white transition-all flex items-center gap-1.5">
+                                                <RobotIcon className="w-3.5 h-3.5" />
+                                                <span>تجهيز أسئلة</span>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            );
+                        })
                     )}
                 </tbody>
             </table>
@@ -553,7 +618,7 @@ const EvaluationModal = ({ candidate, onClose, onSave }: { candidate: CandidateD
                 <div className="p-8 border-b border-slate-100 flex items-center justify-between">
                     <div className="flex flex-col text-right">
                         <h3 className="text-xl font-black text-slate-900">تقييم سريع</h3>
-                        <span className="text-sm font-bold text-blue-600">{candidate.info.fullName}</span>
+                        <span className="text-sm font-bold text-blue-600">{candidate?.info?.fullName || 'مرشح'}</span>
                     </div>
                     <button onClick={(e) => { e.stopPropagation(); onClose(); }} type="button" className="p-3 bg-slate-50 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-900 transition-all">✕</button>
                 </div>
@@ -572,7 +637,6 @@ const EvaluationModal = ({ candidate, onClose, onSave }: { candidate: CandidateD
                         </div>
                     </div>
 
-                    {/* Updated: Recruitment Doctor Section */}
                     <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 space-y-3">
                         <label className="block text-xs font-black text-slate-400 uppercase tracking-widest">تقييم دكتور التوظيف</label>
                         <div className="flex flex-wrap items-center gap-4">
@@ -740,7 +804,7 @@ const InterviewQuestionsModal = ({ candidate, onClose, onSave }: { candidate: Ca
                             <RobotIcon className="w-5 h-5 text-indigo-600" />
                             <h3 className="text-xl font-black text-slate-900">Interview Co-pilot</h3>
                         </div>
-                        <span className="text-xs font-bold text-slate-500 mt-1">أسئلة مقابلة المرشح: {candidate.info.fullName}</span>
+                        <span className="text-xs font-bold text-slate-500 mt-1">أسئلة مقابلة المرشح: {candidate?.info?.fullName || 'مرشح'}</span>
                     </div>
                     <button onClick={(e) => { e.stopPropagation(); onClose(); }} type="button" className="p-3 bg-white rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-900 shadow-sm transition-all">✕</button>
                 </div>
@@ -874,7 +938,7 @@ const InterviewSessionDrawer = ({ candidate, onClose, onSave, onExportReport }: 
                                 <CalendarIcon className="w-6 h-6 text-emerald-600" />
                                 <h3 className="text-2xl font-black text-slate-900">جلسة مقابلة المرشّح</h3>
                             </div>
-                            <span className="text-sm font-bold text-slate-500 mt-1">{candidate.info.fullName} (التخصص: {candidate.info.specialty})</span>
+                            <span className="text-sm font-bold text-slate-500 mt-1">{candidate?.info?.fullName || 'مرشح'} (التخصص: {candidate?.info?.specialty || 'غير محدد'})</span>
                         </div>
                         <button onClick={(e) => { e.stopPropagation(); onClose(); }} type="button" className="p-3 bg-white rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-900 shadow-sm transition-all">✕</button>
                     </div>
@@ -930,7 +994,6 @@ const InterviewSessionDrawer = ({ candidate, onClose, onSave, onExportReport }: 
                         </div>
                     </div>
 
-                    {/* Updated: Recruitment Doctor Assessment Section */}
                     <div className="p-6 bg-white border border-slate-100 rounded-[1.5rem] shadow-sm space-y-4">
                         <label className="block text-xs font-black text-slate-900 uppercase tracking-widest border-r-4 border-slate-900 pr-3">تقييم دكتور التوظيف</label>
                         <div className="flex flex-wrap items-center gap-8">
@@ -1093,154 +1156,126 @@ const InterviewSessionDrawer = ({ candidate, onClose, onSave, onExportReport }: 
 
 const InterviewReportView = ({ candidate, onClose }: { candidate: CandidateData, onClose: () => void }) => {
     const handlePrint = () => window.print();
+    const evalData = candidate?.evaluation;
 
     return (
-        <div className="fixed inset-0 z-[300] bg-white flex flex-col items-center overflow-y-auto">
+        <div className="fixed inset-0 z-[300] bg-white overflow-y-auto" dir="rtl">
             <style>{`
                 @media print {
                     .no-print { display: none !important; }
-                    body { background: white !important; padding: 0 !important; margin: 0 !important; }
-                    .print-container { width: 100% !important; max-width: 100% !important; padding: 0 !important; margin: 0 !important; border: none !important; box-shadow: none !important; }
-                    @page { size: A4 portrait; margin: 15mm; }
+                    body { background: white !important; }
+                    .print-container { padding: 0 !important; width: 100% !important; }
+                    @page { size: A4; margin: 15mm; }
                 }
             `}</style>
             
-            <div className="no-print sticky top-0 w-full bg-slate-900 text-white p-4 flex justify-between items-center shadow-lg z-[310]">
-                <div className="flex items-center gap-4">
-                    <button onClick={onClose} className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl font-bold text-xs transition-all flex items-center gap-2">
-                        ← العودة
+            <div className="max-w-4xl mx-auto p-8 print-container">
+                <div className="flex justify-between items-center mb-10 no-print border-b border-slate-100 pb-4">
+                    <button onClick={onClose} className="text-slate-400 font-black text-xs uppercase hover:text-slate-900 transition-colors">← إغلاق التقرير</button>
+                    <button onClick={handlePrint} className="bg-slate-900 text-white px-8 py-3 rounded-2xl font-black text-xs flex items-center gap-2 shadow-xl hover:bg-slate-800 transition-all">
+                        <PrinterIcon className="w-4 h-4" />
+                        <span>طباعة التقرير</span>
                     </button>
                 </div>
-                <button onClick={handlePrint} className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 rounded-xl font-black text-xs transition-all flex items-center gap-2 shadow-lg shadow-emerald-900/40">
-                    <PrinterIcon className="w-4 h-4" />
-                    <span>طباعة / حفظ كملف PDF</span>
-                </button>
-            </div>
 
-            <div className="print-container w-full max-w-[21cm] bg-white p-[1.5cm] md:my-8 md:border md:border-slate-100 md:shadow-2xl text-right animate-fade-in" dir="rtl">
-                <div className="flex justify-between items-start border-b-2 border-slate-900 pb-6 mb-8">
-                    <div className="flex flex-col text-right">
-                        <h1 className="text-3xl font-black text-slate-900 tracking-tighter">Shahm CV Analyzer – شهماوي</h1>
-                        <h2 className="text-xl font-bold text-slate-600 mt-1">تقرير جلسة المقابلة التفصيلي</h2>
+                <div className="border-b-4 border-slate-900 pb-6 mb-8 flex justify-between items-end">
+                    <div>
+                        <h1 className="text-3xl font-black text-slate-900 mb-1">تقرير نتيجة مقابلة</h1>
+                        <p className="text-xs font-bold text-slate-400 tracking-widest uppercase">SHAHM CONTRACTING - INTERVIEW REPORT</p>
+                    </div>
+                    <div className="text-left ltr">
+                        <div className="text-xl font-black text-slate-900">SHAHM</div>
+                        <div className="text-[8px] font-black text-slate-400">ENGINEERING EXCELLENCE</div>
                     </div>
                 </div>
 
-                <div className="mb-10">
-                    <h3 className="text-lg font-black text-slate-900 mb-4 bg-slate-100 p-2 border-r-4 border-slate-900">بيانات المرشّح</h3>
-                    <div className="grid grid-cols-2 gap-y-4 gap-x-8 text-sm">
-                        <div className="flex flex-col">
-                            <span className="text-[10px] font-black text-slate-400 uppercase">اسم المرشّح</span>
-                            <span className="font-bold border-b border-slate-100 pb-1">{candidate.info.fullName}</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+                    <div className="space-y-4">
+                        <div className="flex justify-between border-b border-slate-100 py-2">
+                            <span className="text-xs font-black text-slate-400">اسم المرشح:</span>
+                            <span className="text-sm font-black text-slate-900">{candidate?.info?.fullName || '-'}</span>
                         </div>
-                        <div className="flex flex-col">
-                            <span className="text-[10px] font-black text-slate-400 uppercase">المسمّى الوظيفي / التخصّص</span>
-                            <span className="font-bold border-b border-slate-100 pb-1">{candidate.info.jobTitle} / {candidate.info.specialty}</span>
+                        <div className="flex justify-between border-b border-slate-100 py-2">
+                            <span className="text-xs font-black text-slate-400">التخصص:</span>
+                            <span className="text-sm font-black text-slate-900">{candidate?.info?.specialty || '-'}</span>
                         </div>
-                        <div className="flex flex-col">
-                            <span className="text-[10px] font-black text-slate-400 uppercase">إجمالي الخبرة</span>
-                            <span className="font-bold border-b border-slate-100 pb-1">{candidate.info.experienceYears}</span>
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="text-[10px] font-black text-slate-400 uppercase">الجنسية</span>
-                            <span className="font-bold border-b border-slate-100 pb-1">{candidate.info.nationality}</span>
+                        <div className="flex justify-between border-b border-slate-100 py-2">
+                            <span className="text-xs font-black text-slate-400">الوظيفة المتقدم لها:</span>
+                            <span className="text-sm font-black text-slate-900">{candidate?.info?.jobTitle || '-'}</span>
                         </div>
                     </div>
-                </div>
-
-                <div className="mb-10">
-                    <h3 className="text-lg font-black text-slate-900 mb-4 bg-slate-100 p-2 border-r-4 border-slate-900">بيانات جلسة المقابلة</h3>
-                    <div className="grid grid-cols-2 gap-y-4 gap-x-8 text-sm">
-                        <div className="flex flex-col">
-                            <span className="text-[10px] font-black text-slate-400 uppercase">تاريخ المقابلة</span>
-                            <span className="font-bold border-b border-slate-100 pb-1">{candidate.evaluation?.interviewDate || 'N/A'}</span>
+                    <div className="space-y-4">
+                        <div className="flex justify-between border-b border-slate-100 py-2">
+                            <span className="text-xs font-black text-slate-400">تاريخ المقابلة:</span>
+                            <span className="text-sm font-black text-slate-900">{evalData?.interviewDate || '-'}</span>
                         </div>
-                        <div className="flex flex-col">
-                            <span className="text-[10px] font-black text-slate-400 uppercase">نوع المقابلة</span>
-                            <span className="font-bold border-b border-slate-100 pb-1">{candidate.evaluation?.interviewType || 'حضورية'}</span>
+                        <div className="flex justify-between border-b border-slate-100 py-2">
+                            <span className="text-xs font-black text-slate-400">اسم المحاور:</span>
+                            <span className="text-sm font-black text-slate-900">{evalData?.interviewerName || '-'}</span>
                         </div>
-                        <div className="flex flex-col col-span-2">
-                            <span className="text-[10px] font-black text-slate-400 uppercase">اسم المقيّم / المحاوِر</span>
-                            <span className="font-bold border-b border-slate-100 pb-1">{candidate.evaluation?.interviewerName || 'غير محدد'}</span>
+                        <div className="flex justify-between border-b border-slate-100 py-2">
+                            <span className="text-xs font-black text-slate-400">نتيجة الفحص الطبي:</span>
+                            <span className={`text-sm font-black ${evalData?.recruitmentDoctorPass ? 'text-emerald-600' : 'text-red-600'}`}>
+                                {evalData?.recruitmentDoctorPass === true ? 'اجتاز' : evalData?.recruitmentDoctorPass === false ? 'لم يجتاز' : 'قيد الانتظار'}
+                            </span>
                         </div>
                     </div>
                 </div>
 
-                {/* Updated: Recruitment Doctor Print Section */}
-                <div className="mb-10">
-                    <h3 className="text-lg font-black text-slate-900 mb-4 bg-slate-100 p-2 border-r-4 border-slate-900">تقييم دكتور التوظيف</h3>
-                    <div className="flex flex-wrap items-center gap-6 p-4 border border-slate-100 rounded-2xl">
-                        <div className="flex items-center gap-2">
-                            <div className={`w-5 h-5 border-2 rounded-md flex items-center justify-center ${candidate.evaluation?.recruitmentDoctorPass === undefined ? 'bg-slate-400 border-slate-400' : 'bg-white border-slate-300'}`}>
-                                {candidate.evaluation?.recruitmentDoctorPass === undefined && <ClockIcon className="w-3 h-3 text-white" />}
-                            </div>
-                            <span className={`text-sm font-black ${candidate.evaluation?.recruitmentDoctorPass === undefined ? 'text-slate-900' : 'text-slate-400'}`}>لم يتم التقييم بعد</span>
+                <div className="bg-slate-50 p-8 rounded-[2rem] border border-slate-200 mb-10 text-center">
+                    <div className="text-sm font-black text-slate-400 uppercase tracking-widest mb-2">إجمالي درجة التقييم</div>
+                    <div className="text-6xl font-black text-slate-900">{evalData?.score || 0}%</div>
+                    <div className="mt-4 flex justify-center gap-6">
+                        <div className="flex flex-col">
+                            <span className="text-[10px] font-black text-slate-400 uppercase">HR</span>
+                            <span className="text-lg font-black">{evalData?.hrScore || 0}/75</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <div className={`w-5 h-5 border-2 rounded-md flex items-center justify-center ${candidate.evaluation?.recruitmentDoctorPass === true ? 'bg-emerald-600 border-emerald-600' : 'bg-white border-slate-300'}`}>
-                                {candidate.evaluation?.recruitmentDoctorPass === true && <CheckCircleIcon className="w-3 h-3 text-white" />}
-                            </div>
-                            <span className={`text-sm font-black ${candidate.evaluation?.recruitmentDoctorPass === true ? 'text-slate-900' : 'text-slate-400'}`}>اجتاز</span>
+                        <div className="flex flex-col">
+                            <span className="text-[10px] font-black text-slate-400 uppercase">Technical</span>
+                            <span className="text-lg font-black">{evalData?.techScore || 0}/75</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <div className={`w-5 h-5 border-2 rounded-md flex items-center justify-center ${candidate.evaluation?.recruitmentDoctorPass === false ? 'bg-red-500 border-red-500' : 'bg-white border-slate-300'}`}>
-                                {candidate.evaluation?.recruitmentDoctorPass === false && <span className="text-white text-[10px] font-black">×</span>}
-                            </div>
-                            <span className={`text-sm font-black ${candidate.evaluation?.recruitmentDoctorPass === false ? 'text-slate-900' : 'text-slate-400'}`}>لم يجتاز</span>
+                        <div className="flex flex-col">
+                            <span className="text-[10px] font-black text-slate-400 uppercase">Final</span>
+                            <span className="text-lg font-black">{evalData?.finalScore || 0}/75</span>
                         </div>
                     </div>
                 </div>
 
-                <div className="mb-10">
-                    <h3 className="text-lg font-black text-slate-900 mb-6 bg-slate-100 p-2 border-r-4 border-slate-900 flex justify-between items-center">
-                        <span>نتائج تقييم المقابلة (من 225 درجة)</span>
-                        <div className="flex flex-col items-end">
-                            <div className="flex items-center gap-2">
-                                <span className="text-[10px] font-black opacity-40">المجموع:</span>
-                                <span className="text-2xl font-black text-emerald-600">{(Number(candidate.evaluation?.hrScore) || 0) + (Number(candidate.evaluation?.techScore) || 0) + (Number(candidate.evaluation?.finalScore) || 0)}</span>
-                                <span className="text-xs font-black text-slate-400">/ 225</span>
-                            </div>
-                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">النسبة المئوية: {candidate.evaluation?.score || 0}%</div>
-                        </div>
-                    </h3>
-                    
+                <div className="space-y-8 mb-20">
+                    <div className="space-y-2">
+                        <h3 className="text-sm font-black text-slate-900 border-r-4 border-slate-900 pr-3">مرئيات الموارد البشرية (HR Feedback)</h3>
+                        <p className="p-4 bg-white border border-slate-100 rounded-xl text-xs font-bold text-slate-700 leading-relaxed min-h-[60px]">{evalData?.hrEvaluation || '-'}</p>
+                    </div>
+                    <div className="space-y-2">
+                        <h3 className="text-sm font-black text-slate-900 border-r-4 border-slate-900 pr-3">التقييم الفني (Technical Evaluation)</h3>
+                        <p className="p-4 bg-white border border-slate-100 rounded-xl text-xs font-bold text-slate-700 leading-relaxed min-h-[60px]">{evalData?.technicalEvaluation || '-'}</p>
+                    </div>
+                    <div className="space-y-2">
+                        <h3 className="text-sm font-black text-slate-900 border-r-4 border-slate-900 pr-3">التوصية النهائية والقرار (Final Decision)</h3>
+                        <p className="p-4 bg-emerald-50/20 border border-emerald-100 rounded-xl text-xs font-black text-slate-900 leading-relaxed min-h-[60px]">{evalData?.finalEvaluation || '-'}</p>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-10 mt-20 pt-10 border-t border-slate-200 text-center">
                     <div className="space-y-8">
-                        <div className="p-5 border border-slate-100 rounded-2xl">
-                            <div className="flex justify-between items-center mb-4">
-                                <span className="text-xs font-black text-blue-600 uppercase tracking-widest">1. تقييم الموارد البشرية</span>
-                                <span className="text-sm font-black text-slate-900">الدرجة: {candidate.evaluation?.hrScore || 0} / 75</span>
-                            </div>
-                            <p className="text-xs font-bold text-slate-700 leading-relaxed whitespace-pre-wrap">{candidate.evaluation?.hrEvaluation || 'لا توجد ملاحظات مسجلة.'}</p>
-                        </div>
-
-                        <div className="p-5 border border-slate-100 rounded-2xl">
-                            <div className="flex justify-between items-center mb-4">
-                                <span className="text-xs font-black text-indigo-600 uppercase tracking-widest">2. التقييم الفني</span>
-                                <span className="text-sm font-black text-slate-900">الدرجة: {candidate.evaluation?.techScore || 0} / 75</span>
-                            </div>
-                            <p className="text-xs font-bold text-slate-700 leading-relaxed whitespace-pre-wrap">{candidate.evaluation?.technicalEvaluation || 'لا توجد ملاحظات مسجلة.'}</p>
-                        </div>
-
-                        <div className="p-6 bg-emerald-50/30 border border-emerald-100 rounded-2xl">
-                            <div className="flex justify-between items-center mb-4">
-                                <span className="text-xs font-black text-emerald-600 uppercase tracking-widest">3. القرار النهائي والتوصية</span>
-                                <span className="text-sm font-black text-slate-900">الدرجة: {candidate.evaluation?.finalScore || 0} / 75</span>
-                            </div>
-                            <p className="text-sm font-black text-slate-900 leading-relaxed whitespace-pre-wrap">{candidate.evaluation?.finalEvaluation || 'لا توجد توصية مسجلة.'}</p>
-                        </div>
+                        <div className="text-xs font-black text-slate-400">توقيع الموارد البشرية</div>
+                        <div className="h-px bg-slate-200 mx-4"></div>
+                        <div className="text-[10px] font-bold text-slate-300">التاريخ: .....................</div>
+                    </div>
+                    <div className="space-y-8">
+                        <div className="text-xs font-black text-slate-400">توقيع المسؤول الفني</div>
+                        <div className="h-px bg-slate-200 mx-4"></div>
+                        <div className="text-[10px] font-bold text-slate-300">التاريخ: .....................</div>
+                    </div>
+                    <div className="space-y-8">
+                        <div className="text-xs font-black text-slate-400">اعتماد الإدارة العليا</div>
+                        <div className="h-px bg-slate-200 mx-4"></div>
+                        <div className="text-[10px] font-bold text-slate-300">التاريخ: .....................</div>
                     </div>
                 </div>
 
-                <div className="mt-12 pt-8 border-t border-slate-200 flex flex-col items-center">
-                    <div className="text-center px-12 py-6 bg-slate-900 text-white rounded-[2rem] shadow-xl w-full max-lg">
-                        <span className="text-[10px] font-black uppercase tracking-widest opacity-60 block mb-2">القرار النهائي للجنة التوظيف</span>
-                        <p className="text-lg font-black leading-tight">
-                            {candidate.evaluation?.finalEvaluation ? candidate.evaluation.finalEvaluation.split('\n')[0] : 'في انتظار القرار النهائي'}
-                        </p>
-                    </div>
-                </div>
-
-                <div className="mt-16 text-[8px] font-black text-slate-300 uppercase tracking-[0.5em] text-center border-t border-slate-50 pt-4">
-                    SHAHM CONTRACTING – AI TALENT REPORT ENGINE v6.0
+                <div className="mt-20 text-center opacity-30">
+                    <p className="text-[8px] font-black text-slate-500 uppercase tracking-[0.5em]">Internal Document • Confidential • Shahm Contracting Co.</p>
                 </div>
             </div>
         </div>
@@ -1249,198 +1284,127 @@ const InterviewReportView = ({ candidate, onClose }: { candidate: CandidateData,
 
 const DashboardExportView = ({ stats, analytics, specialties, onClose }: { stats: any, analytics: any, specialties: string[], onClose: () => void }) => {
     const handlePrint = () => window.print();
-    const currentDate = new Date().toLocaleString('ar-EG', { dateStyle: 'long', timeStyle: 'short' });
-    
-    const topNationality = analytics.nationalityData[0]?.label || 'متنوعة';
-    const topExpRange = analytics.experienceData.slice().sort((a: any, b: any) => b.value - a.value)[0]?.label || 'متنوعة';
-    const topSpecialty = analytics.topSpecialties[0]?.label || 'متنوعة';
+
+    const topNationality = analytics?.nationalityData?.[0]?.label || "غير محدد";
+    const topSpecialty = analytics?.topSpecialties?.[0]?.label || "عام";
+    const hiringHealth = stats?.avgScoreNum > 60 ? "ممتازة" : stats?.avgScoreNum > 40 ? "جيدة" : "تحتاج تحسين";
 
     return (
-        <div className="fixed inset-0 z-[400] bg-white flex flex-col items-center overflow-y-auto dashboard-export-overlay" onClick={onClose}>
+        <div className="fixed inset-0 z-[300] bg-white overflow-y-auto" dir="rtl">
             <style>{`
                 @media print {
-                    @page { 
-                        size: A4 landscape; 
-                        margin: 0; 
-                    }
-                    
-                    body * { visibility: hidden !important; }
-                    .dashboard-export-overlay, .dashboard-export-overlay * { visibility: visible !important; }
-                    
-                    .dashboard-export-overlay {
-                        position: absolute !important;
-                        left: 0 !important;
-                        top: 0 !important;
-                        width: 100% !important;
-                        height: auto !important;
-                        overflow: visible !important;
-                        background: white !important;
-                    }
-
-                    .print-container { 
-                        position: relative !important;
-                        width: 297mm !important; 
-                        max-width: 297mm !important;
-                        height: 210mm !important; 
-                        padding: 8mm 12mm !important; 
-                        margin: 0 auto !important;
-                        border: none !important;
-                        box-shadow: none !important;
-                        background: white !important;
-                        -webkit-print-color-adjust: exact !important;
-                        print-color-adjust: exact !important;
-                        display: flex !important;
-                        flex-direction: column !important;
-                        overflow: hidden !important;
-                    }
-
-                    .report-section { 
-                        break-inside: avoid !important;
-                        margin-bottom: 4px !important; 
-                        width: 100% !important;
-                    }
-
-                    .print-container .print-icon-wrapper svg {
-                        width: 13px !important;
-                        height: 13px !important;
-                        min-width: 13px !important;
-                        min-height: 13px !important;
-                        max-width: 13px !important;
-                        max-height: 13px !important;
-                    }
-
-                    .print-container .chart-svg { 
-                        width: 100% !important; 
-                        height: 100% !important; 
-                    }
-                    
-                    .print-container .w-24.h-24 { width: 110px !important; height: 110px !important; }
-                    .print-container .h-16 { height: 60px !important; }
-                    
-                    .print-container .text-2xl { font-size: 20px !important; }
-                    .print-container .text-lg { font-size: 16px !important; }
-                    .print-container .text-[8.5px] { font-size: 9px !important; }
-                    .print-container .text-[10.5px] { font-size: 10px !important; line-height: 1.3 !important; }
-                    .print-container .text-[10px] { font-size: 9.5px !important; }
-                    
-                    .grid { gap: 8px !important; }
-                    
-                    .no-print { display: none !important; visibility: hidden !important; }
-                    .bg-white { background-color: white !important; }
-                    .bg-slate-50 { background-color: #f8fafc !important; }
-                    .bg-blue-50\/30 { background-color: rgba(239, 246, 255, 0.3) !important; }
-                    .bg-emerald-50\/20 { background-color: rgba(16, 185, 129, 0.05) !important; }
-                    .bg-slate-900 { background-color: #0f172a !important; color: white !important; }
-                    
-                    .print-icon { transform: none !important; }
-                    
-                    .p-4 { padding: 0.6rem !important; }
-                    .p-3 { padding: 0.5rem !important; }
-                    .mb-4 { margin-bottom: 6px !important; }
+                    .no-print { display: none !important; }
+                    body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; background: white !important; }
+                    .print-container { padding: 0 !important; width: 100% !important; margin: 0 !important; }
+                    @page { size: A4 landscape; margin: 10mm; }
+                    .print-chart { max-width: 150px !important; margin: 0 auto; }
+                    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
                 }
             `}</style>
             
-            <div className="no-print sticky top-0 w-full bg-slate-900 text-white p-4 flex justify-between items-center shadow-lg z-[410]" onClick={e => e.stopPropagation()}>
-                <div className="flex items-center gap-4">
-                    <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl font-bold text-xs transition-all flex items-center gap-2">← رجوع</button>
-                    <span className="text-xs font-black tracking-widest uppercase opacity-50">تصدير تحليلات المواهب (Landscape Mode)</span>
+            <div className="max-w-6xl mx-auto p-10 print-container">
+                <div className="flex justify-between items-center mb-10 no-print border-b border-slate-100 pb-4">
+                    <button onClick={onClose} className="text-slate-400 font-black text-xs uppercase hover:text-slate-900 transition-colors">← إغلاق لوحة التصدير</button>
+                    <button onClick={handlePrint} className="bg-emerald-600 text-white px-8 py-3 rounded-2xl font-black text-xs flex items-center gap-2 shadow-xl hover:bg-emerald-700 transition-all">
+                        <PrinterIcon className="w-4 h-4" />
+                        <span>طباعة لوحة المؤشرات (PDF)</span>
+                    </button>
                 </div>
-                <button onClick={(e) => { e.stopPropagation(); handlePrint(); }} className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-xl font-black text-xs transition-all flex items-center gap-2 shadow-lg">
-                    <PrinterIcon className="w-4 h-4" />
-                    <span>طباعة التقرير العرضي / PDF</span>
-                </button>
-            </div>
 
-            <div className="print-container w-full max-w-[29cm] bg-white p-[1.5cm] md:my-6 md:border md:border-slate-100 md:shadow-2xl text-right animate-fade-in" dir="rtl" onClick={e => e.stopPropagation()}>
-                <div className="flex justify-between items-center border-b-2 border-slate-900 pb-2 mb-3 report-section">
-                    <div className="flex flex-col text-right">
-                        <h1 className="text-2xl font-black text-slate-900 tracking-tighter">تقرير تحليلات المواهب الاستراتيجي – شهماوي وظّف لي</h1>
-                        <span className="text-[10px] font-bold text-slate-400 block italic">تاريخ الاستخراج: {currentDate} | SHAHM AI-POWERED ANALYTICS</span>
+                <div className="flex justify-between items-start mb-10 border-b-2 border-slate-100 pb-6">
+                    <div>
+                        <h1 className="text-3xl font-black text-slate-900 mb-1">لوحة مؤشرات التوظيف الذكي</h1>
+                        <p className="text-[10px] font-bold text-slate-400 tracking-widest uppercase">SHAHM AI - RECRUITMENT KPI DASHBOARD</p>
                     </div>
-                    <div className="flex items-center gap-3">
-                        <div className="text-left leading-none">
-                            <p className="text-[10px] font-black text-slate-900">شهم للمقاولات</p>
-                            <p className="text-[8px] font-bold text-slate-400">إدارة الموارد البشرية</p>
-                        </div>
-                        <div className="w-10 h-10 border-2 border-slate-900 flex items-center justify-center font-black text-[6px] text-center p-1 rounded-lg">SHAHM</div>
+                    <div className="text-left">
+                        <div className="text-sm font-black text-slate-300">التاريخ: {new Date().toLocaleDateString('ar-EG')}</div>
+                        <div className="text-sm font-black text-slate-300">الإصدار: v6.5</div>
                     </div>
                 </div>
 
-                <div className="mb-3 report-section">
-                    <div className="grid grid-cols-6 gap-3">
-                        <KPICard label="السير المُحلَّلة" value={stats.total} subtitle="إجمالي قاعدة البيانات" icon={<FileTextIcon />} isPrint />
-                        <KPICard label="مؤهلون للمقابلة" value={stats.shortlistedCount} subtitle="تجاوزوا الفرز الذكي" icon={<CheckCircleIcon />} isPrint />
-                        <KPICard label="نسبة الملاءمة" value={stats.suitabilityPct} subtitle="توصية شهماوي" icon={<RobotIcon />} isPrint />
-                        <KPICard label="درجة التقييم" value={stats.avgScore} subtitle="متوسط المقابلات" icon={<ShieldIcon />} isPrint />
-                        <KPICard label="عائلات وظيفية" value={specialties.length} subtitle="تنوع التخصصات" icon={<BriefcaseIcon />} isPrint />
-                        <KPICard label="تخصص ذروة" value={topSpecialty} subtitle="الأعلى توفراً" icon={<ChartIcon />} isPrint />
-                    </div>
+                <div className="grid grid-cols-4 gap-4 mb-10">
+                    <KPICard label="إجمالي السير" value={stats?.total || 0} subtitle="مرشح مسجل" icon={<ChartIcon />} isPrint={true} />
+                    <KPICard label="مؤهل للمقابلة" value={stats?.shortlistedCount || 0} subtitle="مرشح في القائمة" icon={<ClockIcon />} isPrint={true} />
+                    <KPICard label="متوسط التقييم" value={stats?.avgScore || '0%'} subtitle="بناءً على النتائج" icon={<ShieldIcon />} isPrint={true} />
+                    <KPICard label="نسبة الكفاءة" value={stats?.suitabilityPct || '0%'} subtitle="توصية شهماوي" icon={<CheckCircleIcon />} isPrint={true} />
                 </div>
 
-                <div className="report-section mb-3">
-                    <div className="p-3 bg-blue-50/30 border border-blue-100 rounded-2xl">
-                        <h3 className="text-[11px] font-black text-slate-900 mb-1 uppercase tracking-widest border-r-4 border-slate-900 pr-3">رؤية المحلل الذكي (AI Executive Insight)</h3>
-                        <p className="text-[10.5px] font-bold text-slate-700 leading-relaxed text-justify">
-                            بناءً على تحليل البيانات المجمعة، نلاحظ وفرة نوعية في تخصص <b>{topSpecialty}</b> بنسبة ملاءمة استراتيجية بلغت <b>{stats.suitabilityPct}</b>. يتميز السوق حالياً بتنافسية عالية في فئة خبرات <b>{topExpRange}</b>، مما يعطي "شهم" أفضلية في اختيار الكوادر الأكثر استقراراً وملاءمة لثقافة الشركة. نوصي بتسريع وتيرة المقابلات للمرشحين في هذه الفئة لضمان استقطاب النخبة قبل المنافسين.
-                        </p>
-                    </div>
+                <div className="grid grid-cols-3 gap-6 mb-10">
+                    <DonutChart title="توزيع الجنسيات" data={analytics?.nationalityData || []} isPrint={true} />
+                    <BarChart title="توزيع سنوات الخبرة" data={analytics?.experienceData || []} isPrint={true} />
+                    <BarChart title="أكثر التخصصات تكراراً" data={analytics?.topSpecialties || []} horizontal={true} isPrint={true} />
                 </div>
 
-                <div className="report-section grid grid-cols-12 gap-3 mb-3">
-                    <div className="col-span-4">
-                        <DonutChart title="توزيع الجنسيات (٪)" data={analytics.nationalityData} isPrint />
+                <div className="grid grid-cols-2 gap-8 mb-10">
+                    <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                        <h3 className="text-sm font-black text-slate-900 mb-4 flex items-center gap-2 border-b border-slate-200 pb-2">
+                             <RobotIcon className="w-4 h-4 text-blue-600" />
+                             التحليل الذكي (AI Insights)
+                        </h3>
+                        <ul className="space-y-4">
+                            <li className="flex items-start gap-3">
+                                <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 shrink-0"></div>
+                                <p className="text-[10px] font-bold text-slate-600 leading-relaxed">
+                                    القوة العاملة المهيمنة حالياً من الجنسية <span className="text-slate-900 font-black">({topNationality})</span>، مما يشير إلى نمط استقطاب محدد قد يحتاج للتنويع.
+                                </p>
+                            </li>
+                            <li className="flex items-start gap-3">
+                                <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 shrink-0"></div>
+                                <p className="text-[10px] font-bold text-slate-600 leading-relaxed">
+                                    أعلى تخصص متوفر في قاعدة البيانات هو <span className="text-slate-900 font-black">({topSpecialty})</span>، مما يعزز الجاهزية للمشاريع ذات الطابع بهذا التخصص.
+                                </p>
+                            </li>
+                            <li className="flex items-start gap-3">
+                                <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 shrink-0"></div>
+                                <p className="text-[10px] font-bold text-slate-600 leading-relaxed">
+                                    صحة التوظيف العامة (Recruitment Health): <span className={`font-black ${(stats?.avgScoreNum || 0) > 50 ? 'text-emerald-600' : 'text-amber-600'}`}>{hiringHealth}</span> بناءً على متوسط التقييمات الحالية.
+                                </p>
+                            </li>
+                        </ul>
                     </div>
-                    <div className="col-span-4">
-                        <BarChart title="سنوات الخبرة المهنية" data={analytics.experienceData} isPrint />
-                    </div>
-                    <div className="col-span-4 flex flex-col justify-center gap-2 px-4 bg-slate-50/50 rounded-[1.5rem] border border-slate-100 p-3">
-                        <h4 className="text-[11px] font-black text-slate-900 underline decoration-blue-500 decoration-2 underline-offset-4">التحليل الديموغرافي:</h4>
-                        <ul className="text-[10px] font-bold text-slate-600 space-y-1.5 list-disc list-inside">
-                            <li>الجنسية المهيمنة: <b>{topNationality}</b> (تتطلب موازنة استراتيجية).</li>
-                            <li>توزيع الخبرات: يتركز العرض في فئة <b>{topExpRange}</b>.</li>
-                            <li>بيئة العمل: التنوع الثقافي الحالي يعزز الابتكار الفني.</li>
-                            <li>الاستقرار: فئة الخبرات المتوسطة تظهر أعلى درجات الولاء.</li>
+
+                    <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+                        <h3 className="text-sm font-black text-slate-900 mb-4 flex items-center gap-2 border-b border-slate-100 pb-2">
+                             <BriefcaseIcon className="w-4 h-4 text-emerald-600" />
+                             توصيات استراتيجية (Strategy)
+                        </h3>
+                        <ul className="space-y-4">
+                            <li className="flex items-start gap-3">
+                                <div className="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 shrink-0"></div>
+                                <p className="text-[10px] font-bold text-slate-600 leading-relaxed">
+                                    ينصح بالتركيز على استقطاب كفاءات في التخصصات النادرة لزيادة التنوع الفني في المشاريع القادمة.
+                                </p>
+                            </li>
+                            <li className="flex items-start gap-3">
+                                <div className="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 shrink-0"></div>
+                                <p className="text-[10px] font-bold text-slate-600 leading-relaxed">
+                                    زيادة عدد المقابلات للمرشحين ذوي الخبرة "أكثر من 5 سنوات" لرفع جودة المشاريع الكبرى وتقليل المخاطر.
+                                </p>
+                            </li>
+                            <li className="flex items-start gap-3">
+                                <div className="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 shrink-0"></div>
+                                <p className="text-[10px] font-bold text-slate-600 leading-relaxed">
+                                    تسريع إجراءات التعيين للمرشحين الحاصلين على تقييم أعلى من 75% لضمان عدم تسربهم للمنافسين.
+                                </p>
+                            </li>
                         </ul>
                     </div>
                 </div>
 
-                <div className="report-section mb-3">
-                    <div className="grid grid-cols-12 gap-3">
-                        <div className="col-span-9">
-                            <BarChart title="كثافة التخصصات التقنية (Top 5 Specialties)" data={analytics.topSpecialties} horizontal isPrint />
+                <div className="mt-8 p-6 bg-slate-50 rounded-3xl border border-slate-100 flex justify-between items-center">
+                    <div className="flex gap-10">
+                        <div className="flex flex-col">
+                            <span className="text-[8px] font-black text-slate-400 uppercase mb-1">عدد التخصصات</span>
+                            <span className="text-sm font-black">{specialties?.length || 0}</span>
                         </div>
-                        <div className="col-span-3 p-3 bg-emerald-50/20 border border-emerald-100 rounded-2xl flex flex-col justify-center">
-                            <h4 className="text-[11px] font-black text-emerald-700 mb-1.5 underline underline-offset-4">ملاحظات التخصص:</h4>
-                            <p className="text-[10px] font-bold text-slate-600 leading-relaxed text-justify">
-                                يتصدر <b>{topSpecialty}</b> المشهد بوضوح. يجب توجيه فرق الاستقطاب للبحث النشط في التخصصات الأقل كثافة لسد الاحتياجات.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="report-section">
-                    <div className="p-3 bg-slate-900 text-white rounded-[2rem] shadow-xl">
-                        <h3 className="text-[11px] font-black mb-2 uppercase tracking-widest border-r-4 border-emerald-500 pr-3">التوصيات الاستراتيجية للموارد البشرية (Strategic HR Actions)</h3>
-                        <div className="grid grid-cols-2 gap-x-8 gap-y-1.5">
-                            {[
-                                { t: "تعزيز الاستقطاب النوعي", d: `التركيز على الكفاءات القيادية في تخصص ${topSpecialty}.` },
-                                { t: "إدارة مخزون المواهب", d: "أرشفة المرشحين المميزين كـ 'مواهب جاهزة'." },
-                                { t: "تحسين معايير القبول", d: "رفع درجة الملاءمة المطلوبة إلى 85% لضمان الجودة." },
-                                { t: "تفعيل التقرير الرقمي", d: "استخدام مخرجات شهماوي كأساس في لجان التوظيف." }
-                            ].map((rec, idx) => (
-                                <div key={idx} className="flex items-start gap-2 border-r border-white/10 pr-3">
-                                    <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full mt-1.5 shrink-0 shadow-[0_0_8px_#34d399]"></div>
-                                    <p className="text-[10px] font-bold text-slate-200 leading-tight"><b className="text-white">{rec.t}:</b> {rec.d}</p>
-                                </div>
-                            ))}
+                        <div className="flex flex-col">
+                            <span className="text-[8px] font-black text-slate-400 uppercase mb-1">سرعة التوظيف</span>
+                            <span className="text-sm font-black text-emerald-600">High Velocity</span>
                         </div>
                     </div>
-                </div>
-
-                <div className="mt-auto pt-2 text-[8px] font-black text-slate-300 uppercase tracking-[0.5em] text-center border-t border-slate-50 flex justify-between items-center w-full">
-                    <span>SHAHM CONTRACTING – AI TALENT REPORT ENGINE v6.0</span>
-                    <span className="tracking-widest">AI TALENT ANALYTICS v6.0</span>
-                    <span>PRODUCED BY SHAHM AI ENGINE</span>
+                    <div className="text-left">
+                        <p className="text-[7px] font-black text-slate-400 uppercase tracking-[0.4em]">Shahm Contracting Co. • Talent Acquisition Unit</p>
+                    </div>
                 </div>
             </div>
         </div>

@@ -74,7 +74,7 @@ export const LiveAssistant: React.FC<LiveAssistantProps> = ({ candidates, onBack
     setStatus('connecting');
     setIsActive(true);
 
-    const apiKey = process.env.API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       alert("API Key missing.");
       cleanup();

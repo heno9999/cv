@@ -12,7 +12,8 @@ import {
     ScaleIcon, 
     CheckCircleIcon, 
     FileTextIcon, 
-    WhatsAppIcon 
+    WhatsAppIcon,
+    UploadIcon
 } from './Icons';
 import { generateManagerBrief } from '../services/geminiService';
 
@@ -108,6 +109,16 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ candidate, onBack, b
   const [isGeneratingBrief, setIsGeneratingBrief] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState(false);
 
+  const handlePrint = () => {
+      const originalTitle = document.title;
+      document.title = `تحليل سيرة ذاتية ${candidate.info.fullName}`;
+      window.print();
+      // Small delay to ensure the print dialog catches the title before reverting
+      setTimeout(() => {
+          document.title = originalTitle;
+      }, 100);
+  };
+
   const handleCopyManagerBrief = async () => {
     setIsGeneratingBrief(true);
     try {
@@ -134,33 +145,98 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ candidate, onBack, b
             body { background: white !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
             #technical-report { padding: 0 !important; margin: 0 !important; width: 100% !important; max-width: 100% !important; background: white !important; }
             .no-print { display: none !important; }
-            .print-header { display: flex !important; }
-            .hero-mesh { background: #ffffff !important; border: 1px solid #f1f5f9 !important; padding: 1.5rem !important; border-radius: 1rem !important; margin-bottom: 1.5rem !important; box-shadow: none !important; }
+            .print-header { display: flex !important; margin-bottom: 1rem !important; }
+            
+            /* Force Grid Layout for Print to fit A4 */
+            .print-main-grid { display: grid !important; grid-template-columns: 2fr 1fr !important; gap: 1rem !important; align-items: start !important; }
+            .print-col-main { display: flex !important; flex-direction: column !important; gap: 0.75rem !important; margin: 0 !important; }
+            .print-col-side { display: flex !important; flex-direction: column !important; gap: 0.75rem !important; margin: 0 !important; }
+            .print-inner-grid { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 0.75rem !important; }
+            
+            /* Compact Cards to save vertical space */
+            .hero-mesh { background: #ffffff !important; border: 1px solid #f1f5f9 !important; padding: 1rem !important; border-radius: 0.75rem !important; margin-bottom: 0 !important; box-shadow: none !important; }
+            .section-box { break-inside: avoid; border: 1px solid #f1f5f9 !important; padding: 0.75rem !important; border-radius: 0.75rem !important; background: white !important; margin-bottom: 0 !important; }
+            .sidebar-box { break-inside: avoid; border: 1px solid #f1f5f9 !important; padding: 0.75rem !important; border-radius: 0.75rem !important; margin-bottom: 0 !important; }
+            
+            /* Typography Adjustments for Print */
+            h1.tool-title { text-align: left !important; width: auto !important; font-size: 1.25rem !important; margin: 0 !important; }
+            .print-logo { height: 60px !important; width: auto !important; }
+            .candidate-name { text-align: center !important; width: 100% !important; font-size: 1.5rem !important; margin-bottom: 0.25rem !important; }
+            .text-blue-600 { color: #2563eb !important; font-size: 1rem !important; margin-bottom: 0.5rem !important; }
+            p { font-size: 10px !important; line-height: 1.4 !important; margin: 0 !important; }
+            h3 { font-size: 11px !important; margin-bottom: 0.5rem !important; }
+            .text-sm { font-size: 11px !important; }
+            .text-base { font-size: 12px !important; }
+            
+            /* Card Grid inside Hero */
+            .card-grid { display: grid !important; grid-template-columns: repeat(2, 1fr) !important; gap: 0.5rem !important; }
+            .card-grid > div { padding: 0.5rem !important; }
+            
             .gauge-bar { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            .card-grid { display: grid !important; grid-template-columns: repeat(2, 1fr) !important; gap: 0.75rem !important; }
-            .section-box { break-inside: avoid; border: 1px solid #f1f5f9 !important; padding: 1.25rem !important; border-radius: 1rem !important; background: white !important; margin-bottom: 1rem !important; }
-            .sidebar-box { break-inside: avoid; border: 1px solid #f1f5f9 !important; padding: 1.25rem !important; border-radius: 1rem !important; margin-bottom: 1rem !important; }
-            h1.tool-title { text-align: right !important; width: 100% !important; }
-            .candidate-name { text-align: center !important; width: 100% !important; font-size: 2.25rem !important; }
-            .text-blue-600 { color: #2563eb !important; }
-            @page { size: A4; margin: 12mm; }
-            svg { width: 16px !important; height: 16px !important; }
+            
+            @page { size: A4 portrait; margin: 10mm; }
+            svg { width: 12px !important; height: 12px !important; }
+            
+            /* Hide unnecessary spacing */
+            .space-y-6 > * + * { margin-top: 0 !important; }
+            .mb-8 { margin-bottom: 0.75rem !important; }
+            .mt-5 { margin-top: 0.75rem !important; }
+            .pb-16 { padding-bottom: 0 !important; }
         }
         .print-header { display: none; }
       `}</style>
 
       {/* Print Header - Top Right Aligned */}
-      <div className="print-header flex flex-col items-end mb-6 text-right w-full">
-          <div className="w-full flex flex-col items-end border-b border-slate-100 pb-3">
+      <div className="print-header flex justify-between items-center mb-6 w-full border-b border-slate-100 pb-3">
+          <img src="https://i.postimg.cc/ncjVcLhs/Whats-App-Image-2026-01-21-at-4-14-40-PM.jpg" alt="Shahm Logo" className="print-logo h-[60px] w-auto object-contain" referrerPolicy="no-referrer" />
+          <div className="flex flex-col items-end text-right">
               <h1 className="text-3xl font-black text-slate-900 tracking-tighter tool-title">Shahm CV Analyzer</h1>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">محلل السير الذاتية الذكي</p>
           </div>
       </div>
 
       {/* Screen Actions */}
-      <div className="flex items-center justify-between no-print px-2">
-          <button onClick={onBack} className="text-slate-400 font-black text-[10px] uppercase tracking-widest hover:text-blue-600 transition-colors">← {backLabel || 'العودة للوحة التحكم'}</button>
-          <div className="flex gap-3">
+      <div className="flex flex-col sm:flex-row items-center justify-between no-print px-2 pb-4 gap-4">
+          <button onClick={onBack} className="text-slate-400 font-black text-[10px] uppercase tracking-widest hover:text-blue-600 transition-colors self-start sm:self-auto">← {backLabel || 'العودة للوحة التحكم'}</button>
+          <div className="flex flex-wrap gap-3 justify-end w-full sm:w-auto">
+              <div className="flex items-center gap-2">
+                  {candidate.cvUrl ? (
+                      <button 
+                          onClick={() => window.open(candidate.cvUrl, '_blank')}
+                          className="bg-amber-50 text-amber-700 px-5 py-3 rounded-2xl font-black text-xs flex items-center gap-2 border border-amber-100 hover:bg-amber-100 transition-all shadow-sm"
+                      >
+                          <FileTextIcon className="w-4 h-4" />
+                          <span>عرض السيرة الذاتية</span>
+                      </button>
+                  ) : (
+                      <label className="bg-amber-50 cursor-pointer text-amber-700 px-5 py-3 rounded-2xl font-black text-xs flex items-center gap-2 border border-amber-100 hover:bg-amber-100 transition-all shadow-sm">
+                          <UploadIcon className="w-4 h-4" />
+                          <span>إرفاق السيرة الذاتية</span>
+                          <input type="file" accept="application/pdf,image/*" className="hidden" onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (file && onUpdate) {
+                                  const { db } = await import('../services/db');
+                                  if (db.isCloudEnabled()) {
+                                      const timestamp = new Date().getTime();
+                                      const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+                                      const filename = `${timestamp}_${safeName}`;
+                                      const url = await db.uploadCvPdf(file, filename);
+                                      if (url) {
+                                          const updated = { ...candidate, cvUrl: url };
+                                          await db.updateOffer(updated);
+                                          onUpdate(updated);
+                                          alert('تم رفع السيرة الذاتية بنجاح.');
+                                      } else {
+                                          alert('حدث خطأ أثناء رفع الملف.');
+                                      }
+                                  } else {
+                                      alert('لا يمكن رفع الملف. التخزين السحابي غير مفعل.');
+                                  }
+                              }
+                          }} />
+                      </label>
+                  )}
+              </div>
               <button 
                 onClick={handleFindSimilar}
                 className="bg-indigo-50 text-indigo-600 px-5 py-3 rounded-2xl font-black text-xs flex items-center gap-2 border border-indigo-100 hover:bg-indigo-100 transition-all shadow-sm"
@@ -186,20 +262,23 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ candidate, onBack, b
                   )}
                   <span>{copyFeedback ? 'تم النسخ للمدير' : 'نسخ ملخص للمدير'}</span>
               </button>
-              <button onClick={() => window.print()} className="bg-slate-900 text-white px-8 py-3 rounded-2xl font-black text-xs flex items-center gap-2 shadow-xl shadow-slate-900/20 hover:bg-slate-800 transition-all">
+              <button onClick={handlePrint} className="bg-slate-900 text-white px-8 py-3 rounded-2xl font-black text-xs flex items-center gap-2 shadow-xl shadow-slate-900/20 hover:bg-slate-800 transition-all">
                   <PrinterIcon className="w-4 h-4" />
                   <span>تصدير التقرير الفني (PDF)</span>
               </button>
           </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 print-main-grid">
         {/* Main Analysis Column */}
-        <div className="lg:col-span-8 space-y-6">
+        <div className="lg:col-span-8 space-y-6 print-col-main">
             {/* Hero Card */}
             <div className="hero-mesh p-8 md:p-10 rounded-[2rem] border border-slate-100 bg-white shadow-sm relative overflow-hidden">
                 <div className="relative z-10 text-center">
-                    <h1 className="text-4xl font-black text-slate-900 mb-2 tracking-tighter candidate-name">{candidate.info.fullName}</h1>
+                    <h1 className="text-4xl font-black text-slate-900 mb-2 tracking-tighter candidate-name flex items-center justify-center gap-3">
+                        {candidate.info.fullName}
+                        {candidate.source === 'portal' && <span className="bg-fuchsia-100 text-fuchsia-700 text-xs px-3 py-1.5 rounded-xl font-bold flex items-center gap-1 border border-fuchsia-200"><UploadIcon className="w-4 h-4" /> عن طريق الـ QR</span>}
+                    </h1>
                     <p className="text-blue-600 font-black text-lg mb-8">{candidate.info.jobTitle}</p>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 card-grid">
@@ -233,7 +312,7 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ candidate, onBack, b
             </div>
             
             {/* Professional Opinion & Major Companies */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print-inner-grid">
                 <div className="section-box bg-white p-6 rounded-[1.25rem] border border-slate-100 shadow-sm">
                     <div className="flex items-center gap-2 mb-4">
                         <div className="p-1.5 bg-blue-600 rounded-lg text-white shadow-sm scale-[0.6]"><RobotIcon /></div>
@@ -271,7 +350,7 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ candidate, onBack, b
         </div>
         
         {/* Sidebar Column */}
-        <div className="lg:col-span-4 space-y-6">
+        <div className="lg:col-span-4 space-y-6 print-col-side">
             {/* Certifications Card */}
             <div className="sidebar-box bg-indigo-950 p-6 rounded-[1.25rem] text-white shadow-sm relative overflow-hidden">
                 <h3 className="text-[9px] font-black uppercase tracking-widest opacity-70 mb-5 flex items-center justify-end gap-2">
